@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RDX OOBE</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #93c5fd;
+      --accent: #2563eb;
+      --ok: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(880px, 100%);
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 44px); }
+    p { margin: 0 0 14px; line-height: 1.55; }
+    .pill {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #3b82f6;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: .02em;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 18px 0 22px;
+    }
+    .tile {
+      background: #0b1220;
+      border: 1px solid #263449;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .tile h3 { margin: 0 0 8px; font-size: 16px; color: #bfdbfe; }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      color: #bbf7d0;
+      font-weight: 600;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 10px var(--ok);
+    }
+    .cta {
+      display: inline-block;
+      margin-top: 10px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .small { color: #9ca3af; font-size: 13px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="pill">Retail Demo Experience</span>
+    <h1>RDX OOBE Experience</h1>
+    <p>Welcome to your hosted RDX onboarding page. This site is now published via GitHub Pages and can be shared to validate deployment and layout behaviour.</p>
+
+    <section class="grid" aria-label="RDX setup">
+      <article class="tile">
+        <h3>OOBE Stage</h3>
+        <p>Device setup and first-run experience content area.</p>
+      </article>
+      <article class="tile">
+        <h3>Demo Readiness</h3>
+        <p>Add scenario notes, QR links, and launch instructions here.</p>
+      </article>
+      <article class="tile">
+        <h3>Content Channel</h3>
+        <p>Publish updates directly from the repository main branch.</p>
+      </article>
+    </section>
+
+    <div class="status"><span class="dot" aria-hidden="true"></span>GitHub Pages deployment active</div>
+    <a class="cta" href="#" onclick="alert('RDX OOBE placeholder action'); return false;">Launch Demo Step</a>
+    <p class="small">Edit <code>index.html</code> in GitHub to customize production OOBE content.</p>
+  </main>
+</body>
+</html>
