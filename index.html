@@ -1,114 +1,1747 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RDX OOBE</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card: #111827;
-      --text: #e5e7eb;
-      --muted: #93c5fd;
-      --accent: #2563eb;
-      --ok: #22c55e;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Segoe UI, Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-    .card {
-      width: min(880px, 100%);
-      background: rgba(17, 24, 39, 0.9);
-      border: 1px solid #334155;
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
-    }
-    h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 44px); }
-    p { margin: 0 0 14px; line-height: 1.55; }
-    .pill {
-      display: inline-block;
-      margin-bottom: 14px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid #3b82f6;
-      color: var(--muted);
-      font-size: 13px;
-      letter-spacing: .02em;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin: 18px 0 22px;
-    }
-    .tile {
-      background: #0b1220;
-      border: 1px solid #263449;
-      border-radius: 12px;
-      padding: 14px;
-    }
-    .tile h3 { margin: 0 0 8px; font-size: 16px; color: #bfdbfe; }
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-      color: #bbf7d0;
-      font-weight: 600;
-    }
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--ok);
-      box-shadow: 0 0 10px var(--ok);
-    }
-    .cta {
-      display: inline-block;
-      margin-top: 10px;
-      background: var(--accent);
-      color: #fff;
-      text-decoration: none;
-      padding: 10px 16px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    .small { color: #9ca3af; font-size: 13px; margin-top: 10px; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RDX 5-tap OOBE — Prototype</title>
+<style>
+/* =====================================================================
+   RDX 5-Tap OOBE — design review styles
+   1) Gallery chrome   2) OOBE screen system   3) Per-screen pieces
+   ===================================================================== */
+
+/* ---------- 1) Gallery chrome ---------- */
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #11151c; color: #e8edf6; font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+a { color: inherit; }
+
+.topbar { position: sticky; top: 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 10px 22px; background: rgba(17,21,28,.94); backdrop-filter: blur(8px); border-bottom: 1px solid #243044; }
+.topbar .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; white-space: nowrap; }
+.topbar .meta { color: #8a9bb6; font-size: 12.5px; }
+.topbar .tools { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: #1b2331; border: 1px solid #2b374a; color: #c9d6ec; font-size: 12.5px; text-decoration: none; cursor: pointer; }
+.chip:hover { background: #26334a; }
+.chip.on { background: #1d4f8f; border-color: #3b7bd0; color: #fff; }
+.seg2 { display: inline-flex; border: 1px solid #2b374a; border-radius: 999px; overflow: hidden; }
+.seg2 button { all: unset; cursor: pointer; padding: 5px 12px; font-size: 12.5px; color: #c9d6ec; background: #1b2331; }
+.seg2 button.on { background: #1d4f8f; color: #fff; }
+
+.wrap { max-width: 1560px; margin: 0 auto; padding: 8px 22px 80px; }
+.intro { margin: 22px 0 6px; max-width: 980px; }
+.intro h1 { margin: 0 0 6px; font-size: 26px; font-weight: 600; }
+.intro p { margin: 0; color: #97a8c4; font-size: 14.5px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 14px 0 0; color: #97a8c4; font-size: 13px; }
+.legend b { color: #e8edf6; font-weight: 600; }
+
+.flowbox { margin: 20px 0 8px; background: #0e131a; border: 1px solid #243044; border-radius: 12px; padding: 14px; overflow: auto; }
+.flowbox svg { display: block; width: 100%; min-width: 900px; height: auto; }
+.flowbox a { cursor: pointer; }
+.flowbox a:hover rect { stroke: #5aa2ff; }
+
+.flowlist { display: none; margin: 18px 0 6px; background: #0e131a; border: 1px solid #243044; border-radius: 12px; padding: 14px 16px; }
+.flowlist .fl-sec { margin: 0 0 14px; }
+.flowlist .fl-sec:last-child { margin-bottom: 0; }
+.flowlist h4 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: #cfe0ff; }
+.flowlist h4 span { display: block; margin-top: 2px; font-weight: 400; color: #8a9bb6; font-size: 12.5px; }
+.flowlist .fl-chain, .flowlist .fl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; color: #aab9d2; }
+.flowlist .fl-row { margin: 0 0 8px; }
+.flowlist i { font-style: normal; color: #6f819f; }
+.flowlist a.fl { text-decoration: none; padding: 4px 9px; border-radius: 8px; background: #17202e; border: 1.5px solid #3b8bff; color: #fff; font-size: 12.5px; }
+.flowlist a.fl b { margin-right: 4px; }
+.flowlist a.b0 { border-color: #7f9cc9; } .flowlist a.b0 b { color: #9db6dd; }
+.flowlist a.b1 b { color: #3b8bff; }
+.flowlist a.b2 { border-color: #a47bff; } .flowlist a.b2 b { color: #a47bff; }
+.flowlist a.b3 { border-color: #e0a43a; } .flowlist a.b3 b { color: #e0a43a; }
+.flowlist a.b4 { border-color: #ff8a4c; } .flowlist a.b4 b { color: #ff8a4c; }
+.flowlist a.b5 { border-color: #37c978; } .flowlist a.b5 b { color: #37c978; }
+.flowlist .y { color: #6fe39a; font-weight: 600; } .flowlist .n { color: #ff9d86; font-weight: 600; }
+.flowlist .fl-note { margin: 4px 0 0; color: #e0a43a; font-size: 12.5px; }
+@media (max-width: 900px) {
+  .flowbox { display: none; }
+  .flowlist { display: block; }
+  .topbar { position: static; padding: 10px 14px; }
+  .wrap { padding: 4px 14px 60px; }
+  .intro h1 { font-size: 22px; }
+}
+
+.phase { margin: 38px 0 10px; scroll-margin-top: 70px; }
+.phase > h2 { margin: 0 0 4px; font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.phase > h2 .ph { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: #1d4f8f; font-size: 13px; }
+.phase > p { margin: 0 0 16px; color: #93a3bd; font-size: 14px; max-width: 920px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(560px, 100%), 1fr)); gap: 30px 26px; }
+figure.fig { margin: 0; scroll-margin-top: 72px; }
+.frame { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 34px rgba(0,0,0,.5); outline: 1px solid #2a3547; cursor: zoom-in; background: #dfe8f8; }
+.frame:hover { outline-color: #4a86d8; }
+.frame .scr { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+figcaption { margin-top: 11px; }
+figcaption .t { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 15.5px; }
+figcaption .n { display: inline-grid; place-items: center; min-width: 38px; height: 22px; padding: 0 8px; border-radius: 6px; background: #1d4f8f; color: #fff; font-size: 12px; font-weight: 700; }
+figcaption .n.alt { background: #6b3fb8; }
+figcaption ul { margin: 6px 0 0; padding-left: 18px; color: #a9b8d0; font-size: 13.5px; line-height: 1.5; }
+figcaption li { margin: 2px 0; }
+.route { display: flex; flex-wrap: wrap; gap: 3px 16px; margin: 6px 0 0; font-size: 13px; color: #8fa2c0; }
+.route b { font-weight: 700; color: #c9d6ec; }
+.route b.yes { color: #6fe39a; } .route b.no { color: #ff9d86; }
+.route a { color: #8fc0ff; text-decoration: none; }
+.route a:hover { text-decoration: underline; }
+
+.lb { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(5,8,14,.93); backdrop-filter: blur(6px); }
+.lb.on { display: flex; }
+.lb .stage { position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.lb .stage .scr { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.lb .cap { margin-top: 14px; text-align: center; color: #c8d4ea; font-size: 14px; max-width: 980px; }
+.lb .cap b { color: #fff; font-size: 16px; }
+.lb .btn-r { z-index: 3; width: 44px; height: 44px; border-radius: 50%; background: #1d2635; border: 1px solid #33425c; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.lb .x { position: absolute; right: 16px; top: 14px; }
+.lb .navrow { display: flex; align-items: center; gap: 18px; margin-top: 14px; color: #9fb0cc; font-size: 13px; }
+
+body.shot { margin: 0; background: #fff; overflow: hidden; }
+body.shot .scr { transform-origin: 0 0; }
+.sheet { display: grid; grid-template-columns: repeat(4, 640px); gap: 24px 22px; padding: 26px; width: max-content; background: #11151c; }
+.sheet .fr { width: 640px; height: 360px; position: relative; overflow: hidden; border-radius: 6px; outline: 1px solid #2a3547; }
+.sheet .fr .scr { transform: scale(.5); transform-origin: 0 0; }
+.sheet .lab { margin-top: 7px; color: #d4def0; font-size: 13.5px; font-weight: 600; }
+.sheet .lab span { color: #7fb0ff; margin-right: 6px; }
+
+/* ---------- 2) OOBE screen system (1280 x 720 logical) ---------- */
+.scr {
+  --accent: #0067c0; --accent-2: #005aa6; --soft: #e3eaf5;
+  --txt: #1b1f27; --txt2: #59616f; --line: #d5dce8;
+  --field: #ffffff; --field-line: #c2cbdb; --field-base: #707c8f;
+  --panel: rgba(255,255,255,.72); --chip: rgba(255,255,255,.82);
+  --btn2: #ffffff; --btn2-line: #c5cddb; --btn2-txt: #1b1f27;
+  --ok: #0f7b0f; --ok-bg: #e3f3e3; --pilltxt: #0b5cad;
+  --menu: #ffffff; --menu-on: #eaf2fb; --menu-line: #cfd7e4;
+  position: relative; width: 1280px; height: 720px; overflow: hidden; color: var(--txt);
+  font: 16px/1.4 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  background:
+    radial-gradient(720px 420px at 4% 98%, rgba(110,150,245,.55), transparent 70%),
+    radial-gradient(680px 420px at 98% 4%, rgba(200,221,252,.9), transparent 70%),
+    radial-gradient(620px 360px at 94% 100%, rgba(170,152,235,.5), transparent 70%),
+    linear-gradient(135deg, #e7f0fb, #dce7f8 50%, #e5e7f8);
+}
+.theme-dark .scr {
+  --accent: #1a7fe0; --accent-2: #136ac0; --soft: rgba(255,255,255,.13);
+  --txt: #ffffff; --txt2: #bcd0ee; --line: rgba(255,255,255,.22);
+  --field: rgba(4,34,78,.78); --field-line: #4f86c6; --field-base: #8fb8ee;
+  --panel: rgba(255,255,255,.09); --chip: rgba(255,255,255,.11);
+  --btn2: rgba(255,255,255,.1); --btn2-line: rgba(255,255,255,.38); --btn2-txt: #ffffff;
+  --ok: #34c759; --ok-bg: rgba(52,199,89,.2); --pilltxt: #bcdcff;
+  --menu: #0a3a75; --menu-on: #1a6fd0; --menu-line: #4f86c6;
+  background: linear-gradient(135deg, #0c53a6 0%, #093f84 52%, #062c63 100%);
+}
+.scr svg { display: block; }
+.scr .card {
+  position: absolute; left: 56px; right: 56px; top: 40px; bottom: 64px; border-radius: 10px; overflow: hidden;
+  background: linear-gradient(165deg, rgba(255,255,255,.97), rgba(241,246,254,.97) 55%, rgba(232,239,252,.97));
+  box-shadow: 0 22px 54px rgba(24,52,124,.2), 0 2px 8px rgba(24,52,124,.12);
+}
+.theme-dark .scr .card { background: linear-gradient(165deg, rgba(255,255,255,.12), rgba(255,255,255,.05)); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 22px 54px rgba(0,10,40,.35); }
+
+.scr .back { position: absolute; left: 22px; top: 20px; z-index: 3; width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: var(--txt); display: grid; place-items: center; }
+.scr .pill { position: absolute; right: 22px; top: 22px; display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 12px 0 10px; border-radius: 999px; background: var(--chip); border: 1px solid var(--line); font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--pilltxt); }
+.scr .pill i { width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(135deg, #1b8cf6, #5b3dd6); }
+.scr .left { position: absolute; left: 0; top: 0; bottom: 0; width: 50%; display: grid; place-items: center; padding-top: 10px; }
+.scr .right { position: absolute; left: 54%; right: 5%; top: 84px; bottom: 96px; }
+.scr .sys { position: absolute; right: 68px; bottom: 20px; display: flex; gap: 22px; color: var(--txt); opacity: .9; }
+
+.scr h1 { margin: 0 0 18px; font: 400 28px/1.22 "Segoe UI Variable Display", "Segoe UI", sans-serif; letter-spacing: -.005em; }
+.scr .hint { margin: -6px 0 16px; font-size: 14.5px; color: var(--txt2); }
+.scr .kicker { margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: .03em; color: var(--txt2); }
+
+.scr .btn { min-width: 116px; height: 40px; padding: 0 24px; border-radius: 5px; border: 1px solid var(--btn2-line); background: var(--btn2); color: var(--btn2-txt); font: 600 15px/1 "Segoe UI Variable Text", "Segoe UI", sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.06); white-space: nowrap; }
+.scr .btn.primary { background: var(--accent); border-color: var(--accent-2); color: #fff; }
+.scr .btn.disabled { background: #e6e9ef; border-color: #d6dae2; color: #9aa2b0; box-shadow: none; }
+.theme-dark .scr .btn.disabled { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.18); color: rgba(255,255,255,.5); }
+.scr .btn.link { background: transparent; border-color: transparent; box-shadow: none; color: var(--accent); min-width: 0; padding: 0 10px; }
+.theme-dark .scr .btn.link { color: #8fc4ff; }
+.scr .actions { position: absolute; right: 44px; bottom: 32px; display: flex; gap: 12px; align-items: center; }
+.scr .adv { position: absolute; left: 36px; bottom: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 15px 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--chip); color: var(--txt); font-size: 13.5px; font-weight: 600; }
+.scr .adv svg { color: var(--accent); }
+.theme-dark .scr .adv svg { color: #8fc4ff; }
+
+/* stepper */
+.scr .stepper { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-start; width: 560px; }
+.scr .stepper .st { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 64px; }
+.scr .stepper .dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #b5c0d3; background: var(--field); display: grid; place-items: center; color: #fff; }
+.theme-dark .scr .stepper .dot { border-color: rgba(255,255,255,.4); background: transparent; }
+.scr .stepper .done .dot { background: var(--accent); border-color: var(--accent); }
+.scr .stepper .cur .dot { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0,103,192,.16); }
+.scr .stepper .cur .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.scr .stepper .lbl { font-size: 11.5px; color: var(--txt2); white-space: nowrap; }
+.scr .stepper .cur .lbl { color: var(--accent); font-weight: 700; }
+.theme-dark .scr .stepper .cur .lbl { color: #bcdcff; }
+.scr .stepper .seg { flex: 1; height: 2px; margin-top: 9px; background: #cdd5e3; }
+.theme-dark .scr .stepper .seg { background: rgba(255,255,255,.25); }
+.scr .stepper .seg.on { background: var(--accent); }
+
+/* ---------- 3) Per-screen pieces ---------- */
+/* lists (OOBE country/region style) */
+.scr .list { display: flex; flex-direction: column; gap: 6px; }
+.scr .list.fade { -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
+.scr .item { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 7px 16px; border-radius: 6px; color: var(--txt); }
+.scr .item .t { flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+.scr .item b { font-weight: 500; font-size: 17px; }
+.scr .item small { font-size: 13px; opacity: .72; margin-top: 1px; }
+.scr .item code { font: 500 13px Consolas, "Cascadia Mono", monospace; padding: 3px 8px; border-radius: 5px; background: rgba(0,0,0,.06); }
+.scr .item .tag { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: rgba(0,103,192,.1); color: var(--pilltxt); }
+.scr .item.sel { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,103,192,.25); }
+.scr .item.sel code, .scr .item.sel .tag { background: rgba(255,255,255,.22); color: #fff; }
+.theme-dark .scr .item code { background: rgba(255,255,255,.12); }
+.theme-dark .scr .item .tag { background: rgba(255,255,255,.14); color: #d6e8ff; }
+
+/* detected value bar */
+.scr .detected { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: 8px; background: var(--accent); color: #fff; box-shadow: 0 8px 20px rgba(0,103,192,.28); }
+.scr .detected .ico { flex: none; width: 48px; height: 48px; border-radius: 11px; background: rgba(255,255,255,.18); display: grid; place-items: center; }
+.scr .detected .v { font-size: 24px; font-weight: 600; line-height: 1.15; }
+.scr .detected .s { margin-top: 4px; font-size: 14px; opacity: .92; }
+.scr .detected code { font: 600 13.5px Consolas, "Cascadia Mono", monospace; background: rgba(255,255,255,.2); padding: 2px 7px; border-radius: 5px; margin-left: 4px; }
+.scr .facts { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.scr .facts li { display: flex; gap: 11px; align-items: flex-start; font-size: 14.5px; line-height: 1.4; color: var(--txt2); }
+.scr .facts li svg { flex: none; margin-top: 1px; color: var(--accent); }
+.theme-dark .scr .facts li svg { color: #8fc4ff; }
+.scr .facts li.ok { color: var(--ok); font-weight: 600; }
+.scr .facts li.ok svg { color: var(--ok); }
+.scr .facts li a { color: var(--accent); font-weight: 600; }
+
+/* form fields */
+.scr .field { position: relative; margin: 0 0 14px; }
+.scr .field .lab { margin: 0 0 6px; font-size: 13px; color: var(--txt2); }
+.scr .sbox { height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 14px; border: 1px solid var(--field-line); border-bottom-color: var(--field-base); border-radius: 6px; background: var(--field); font-size: 16px; color: var(--txt); }
+.scr .sbox span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scr .sbox.focus { border-color: var(--accent); border-bottom: 2px solid var(--accent); }
+.scr .sbox.dis { background: rgba(0,0,0,.04); border-color: #dde3ec; color: #8d96a5; }
+.theme-dark .scr .sbox.dis { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); color: rgba(255,255,255,.45); }
+.scr .sbox svg { flex: none; opacity: .75; }
+.scr .sbox .ph { color: #8a93a3; }
+.scr .sbox .caret { display: inline-block; width: 1.5px; height: 20px; background: var(--accent); margin-left: 1px; vertical-align: middle; }
+.scr .menu { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; background: var(--menu); border: 1px solid var(--menu-line); border-radius: 8px; padding: 4px; box-shadow: 0 16px 36px rgba(20,40,90,.26); }
+.scr .menu div { position: relative; height: 36px; display: flex; align-items: center; padding: 0 12px; border-radius: 5px; font-size: 15px; }
+.scr .menu div.on { background: var(--menu-on); font-weight: 600; }
+.scr .menu div.on::before { content: ""; position: absolute; left: 2px; top: 9px; bottom: 9px; width: 3px; border-radius: 2px; background: var(--accent); }
+.theme-dark .scr .menu div.on::before { background: #fff; }
+.scr .cap { margin-top: 5px; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--txt2); }
+.scr .cap.ok { color: var(--ok); font-weight: 600; }
+.scr .search { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; margin: 0 0 12px; border: 1px solid var(--field-line); border-bottom-color: var(--field-base); border-radius: 6px; background: var(--field); color: var(--txt2); font-size: 15px; }
+.scr .helper { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: var(--txt2); }
+.scr .helper b { color: var(--txt); font-weight: 600; }
+.scr .more { margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--accent); display: inline-flex; gap: 8px; align-items: center; }
+.theme-dark .scr .more { color: #8fc4ff; }
+
+/* network list */
+.scr .nets { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.scr .net { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 6px; font-size: 16px; }
+.scr .net.sel { flex-direction: column; align-items: stretch; gap: 10px; background: var(--soft); padding: 14px 16px 16px; }
+.scr .net .r1 { display: flex; align-items: center; gap: 12px; }
+.scr .net .sub { margin: -6px 0 0 32px; font-size: 13px; color: var(--txt2); }
+.scr .net .chk { display: flex; align-items: center; gap: 10px; margin-left: 32px; font-size: 14px; }
+.scr .cb { width: 18px; height: 18px; border-radius: 4px; background: var(--accent); color: #fff; display: grid; place-items: center; }
+.scr .net .go { align-self: flex-end; }
+
+/* spinner + detecting */
+.scr .busy { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 26px; }
+.scr .spin { width: 62px; height: 62px; border-radius: 50%; border: 6px solid #d3dbe8; border-top-color: var(--accent); animation: sp 1s linear infinite; }
+.theme-dark .scr .spin { border-color: rgba(255,255,255,.22); border-top-color: #fff; }
+.scr .busy .txt { font-size: 22px; }
+.scr .busy .sub { margin-top: -8px; font-size: 14px; color: var(--txt2); }
+.scr .steps { width: 100%; max-width: 390px; display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.scr .stp { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--txt2); }
+.scr .stp .ic { width: 22px; height: 22px; flex: none; border-radius: 50%; display: grid; place-items: center; }
+.scr .stp.done { color: var(--txt); }
+.scr .stp.done .ic { background: var(--ok); color: #fff; }
+.scr .stp.now { color: var(--txt); font-weight: 600; }
+.scr .stp.now .ic { border: 3px solid #cfd8e6; border-top-color: var(--accent); animation: sp 1s linear infinite; }
+.scr .stp.wait .ic { border: 2px solid #c3ccd9; }
+.theme-dark .scr .stp.wait .ic { border-color: rgba(255,255,255,.35); }
+@keyframes sp { to { transform: rotate(360deg); } }
+@keyframes steam { 0%,100% { transform: translateY(0); opacity: .35; } 50% { transform: translateY(-10px); opacity: .8; } }
+.scr .steam { animation: steam 2.6s ease-in-out infinite; }
+body.shot .scr .spin, body.shot .scr .stp.now .ic, body.shot .scr .task.now .ic, body.shot .scr .steam, .sheet .scr .spin, .sheet .scr .steam { animation: none; }
+
+/* 5-tap entry overlay */
+.scr .scrim { position: absolute; inset: 0; background: rgba(12,24,52,.36); }
+.scr.dim .card, .scr.dim .sys { filter: blur(3px); }
+.scr .dialog { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 500px; border-radius: 14px; padding: 26px 32px 26px; background: rgba(255,255,255,.97); box-shadow: 0 30px 80px rgba(8,20,60,.5); text-align: center; color: #1b1f27; }
+.scr .dialog .rdxm { display: grid; place-items: center; margin: 0 auto 18px; }
+.scr .dialog .taps { display: flex; justify-content: center; gap: 12px; margin: 0 0 18px; }
+.scr .dialog .tap { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; box-shadow: 0 0 0 5px rgba(0,103,192,.14); }
+.scr .dialog h2 { margin: 0 0 8px; font: 400 26px/1.2 "Segoe UI Variable Display", "Segoe UI", sans-serif; }
+.scr .dialog p { margin: 0 0 22px; color: #59616f; font-size: 15px; }
+.scr .dialog .row { display: flex; gap: 10px; justify-content: center; }
+.scr .dialog .btn { --btn2: #fff; --btn2-line: #c5cddb; --btn2-txt: #1b1f27; }
+.scr .tapcue { position: absolute; left: 160px; top: 232px; width: 120px; height: 120px; display: grid; place-items: center; }
+.scr .tapcue i { position: absolute; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); }
+
+/* advanced configuration */
+.scr .ah { position: absolute; left: 70px; top: 50px; right: 70px; }
+.scr .ah h1 { margin: 0 0 4px; font-size: 30px; }
+.scr .ah p { margin: 0; color: var(--txt2); font-size: 15px; }
+.scr .af { position: absolute; left: 70px; top: 142px; width: 676px; }
+.scr .aside { position: absolute; right: 56px; top: 142px; width: 330px; display: flex; flex-direction: column; gap: 14px; }
+.scr .sec { margin: 0 0 9px; font-size: 12px; letter-spacing: .09em; text-transform: uppercase; font-weight: 700; color: var(--txt2); display: flex; align-items: center; gap: 8px; }
+.scr .g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.scr .g2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 16px; }
+.scr .af .field { margin: 0; }
+.scr .af .sbox { height: 40px; font-size: 15px; }
+.scr .af .sec + .g4 { margin-bottom: 22px; }
+.scr .panel { padding: 16px 18px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+.scr .panel h3 { margin: 0 0 6px; display: flex; align-items: center; gap: 10px; font: 600 16px/1.2 "Segoe UI Variable Text", "Segoe UI", sans-serif; }
+.scr .panel h3 svg { color: var(--accent); }
+.theme-dark .scr .panel h3 svg { color: #8fc4ff; }
+.scr .panel p { margin: 0; font-size: 13.5px; color: var(--txt2); line-height: 1.45; }
+.scr .vrow { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-size: 14.5px; font-weight: 600; }
+.scr .vrow .ic { width: 22px; height: 22px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; }
+.scr .panel .btn { margin-top: 14px; height: 36px; min-width: 0; padding: 0 16px; font-size: 14px; }
+.scr .only { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: var(--ok-bg); color: var(--ok); }
+
+/* cooking / done */
+.scr .lockpill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px 6px 10px; margin: 0 0 14px; border-radius: 999px; background: #fff3dc; border: 1px solid #f1d49c; color: #8a5a00; font-size: 13px; font-weight: 600; }
+.scr .lockpill.ok { background: var(--ok-bg); border-color: #bfe0bf; color: var(--ok); }
+.theme-dark .scr .lockpill { background: rgba(255,196,80,.18); border-color: rgba(255,196,80,.45); color: #ffd98a; }
+.theme-dark .scr .lockpill.ok { border-color: rgba(52,199,89,.5); color: #7de8a1; }
+.scr .sub2 { margin: -8px 0 4px; font-size: 17px; color: var(--txt2); }
+.scr .tasks { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.scr .task { display: flex; align-items: center; gap: 14px; padding: 11px 14px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); }
+.scr .task .ic { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; }
+.scr .task .nm { flex: 1; font-size: 16.5px; }
+.scr .task .st { font-size: 13px; color: var(--txt2); font-variant-numeric: tabular-nums; }
+.scr .task .pb { height: 4px; border-radius: 2px; background: #d6e1f2; margin-top: 8px; }
+.scr .task .pb i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+.scr .task.wait .ic { border: 2px solid #c3ccd9; }
+.theme-dark .scr .task.wait .ic { border-color: rgba(255,255,255,.35); }
+.scr .task.now { background: var(--field); border-color: #8db8ea; }
+.scr .task.now .ic { border: 3px solid #cfdcf0; border-top-color: var(--accent); animation: sp 1s linear infinite; }
+.scr .task.ok { background: var(--ok-bg); border-color: rgba(15,123,15,.28); color: var(--ok); }
+.scr .task.ok .ic { background: var(--ok); color: #fff; }
+.scr .task.ok .st { color: var(--ok); font-weight: 700; }
+.scr .recap { position: absolute; left: 34px; bottom: 28px; width: 560px; display: flex; flex-wrap: wrap; gap: 8px; }
+.scr .rchip { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px 0 9px; border-radius: 999px; background: var(--chip); border: 1px solid var(--line); font-size: 12.5px; color: var(--txt); }
+.scr .rchip svg { color: var(--accent); }
+.theme-dark .scr .rchip svg { color: #8fc4ff; }
+.scr .note { position: absolute; left: 54%; bottom: 34px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--txt2); }
+.scr .funny { margin-top: 16px; padding: 12px 14px; border-radius: 8px; border: 1px dashed var(--line); font-size: 14px; color: var(--txt2); display: flex; gap: 10px; align-items: flex-start; }
+.scr .funny svg { color: #c98200; flex: none; margin-top: 1px; }
+
+/* Windows 11 desktop */
+.scr.desktop { background: #2a5fd0; }
+.scr .wp { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scr .dicons { position: absolute; left: 14px; top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.scr .dicon { width: 78px; text-align: center; color: #fff; font-size: 12px; line-height: 1.25; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.scr .dicon .g { width: 46px; height: 46px; margin: 0 auto 4px; display: grid; place-items: center; }
+.scr .win { position: absolute; left: 150px; top: 44px; width: 700px; height: 450px; border-radius: 10px; overflow: hidden; background: #f6f8fc; color: #1b1f27; display: flex; flex-direction: column; box-shadow: 0 28px 64px rgba(6,18,60,.5), 0 0 0 1px rgba(0,0,0,.22); }
+.scr .win .tb { height: 38px; flex: none; display: flex; align-items: center; gap: 9px; padding-left: 12px; background: #eaeff8; font-size: 12.5px; }
+.scr .win .tb .ctl { margin-left: auto; display: flex; }
+.scr .win .tb .ctl span { width: 46px; height: 38px; display: grid; place-items: center; }
+.scr .win .bd { flex: 1; display: flex; min-height: 0; }
+.scr .win .rail { width: 58px; flex: none; background: #e6ecf6; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 12px; }
+.scr .win .rail span { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; color: #4a5568; }
+.scr .win .rail span.on { background: #fff; color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.14); }
+.scr .win .main { flex: 1; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.scr .win .hero { position: relative; height: 186px; border-radius: 12px; overflow: hidden; padding: 20px 24px; color: #fff; background: linear-gradient(120deg, #5b3dd6, #1b8cf6); }
+.scr .win .hero h3 { position: relative; z-index: 1; margin: 8px 0 8px; font: 600 27px/1.15 "Segoe UI Variable Display", "Segoe UI", sans-serif; max-width: 290px; }
+.scr .win .hero p { position: relative; z-index: 1; margin: 0; font-size: 14px; opacity: .92; }
+.scr .win .hero .chipw { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.2); font-size: 12px; font-weight: 600; }
+.scr .win .hero .deco { position: absolute; right: 6px; top: -2px; width: 200px; height: 200px; opacity: .97; }
+.scr .win .hero .deco svg { width: 200px; height: 200px; }
+.scr .win .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.scr .win .tile { height: 112px; border-radius: 10px; background: #fff; border: 1px solid #dde4f0; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; font-size: 13.5px; font-weight: 600; }
+.scr .win .tile i { display: block; width: 36px; height: 36px; border-radius: 9px; }
+.scr .win .tile small { display: block; font-weight: 400; color: #5f6b7e; font-size: 12px; margin-top: 2px; }
+.scr .toast { position: absolute; right: 16px; bottom: 62px; width: 372px; padding: 14px 16px 14px; border-radius: 10px; background: rgba(250,251,254,.97); color: #1b1f27; box-shadow: 0 18px 44px rgba(6,18,60,.45), 0 0 0 1px rgba(0,0,0,.08); }
+.scr .toast .h { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: #59616f; }
+.scr .toast .h .x { margin-left: auto; }
+.scr .toast b { display: block; margin: 8px 0 2px; font-size: 16px; font-weight: 600; }
+.scr .toast p { margin: 0; font-size: 13.5px; color: #4a5361; line-height: 1.4; }
+.scr .toast .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.scr .toast .tags span { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: #eaf1fb; color: #1d4f8f; font-weight: 600; }
+.scr .taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: 48px; display: flex; align-items: center; justify-content: center; gap: 4px; background: rgba(236,241,250,.88); backdrop-filter: blur(28px); border-top: 1px solid rgba(255,255,255,.55); color: #1b1f27; }
+.scr .taskbar .ti { position: relative; width: 42px; height: 40px; border-radius: 6px; display: grid; place-items: center; }
+.scr .taskbar .ti.on::after { content: ""; position: absolute; bottom: 1px; left: 50%; width: 14px; height: 3px; border-radius: 2px; background: var(--accent); transform: translateX(-50%); }
+.scr .taskbar .ti.hot { background: rgba(255,255,255,.6); }
+.scr .taskbar .tray { position: absolute; right: 12px; top: 0; bottom: 0; display: flex; align-items: center; gap: 14px; font-size: 12px; }
+.scr .taskbar .clock { text-align: right; line-height: 1.2; }
+.scr .taskbar .rdxdot { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 11.5px; letter-spacing: .06em; color: #0b5cad; }
+.scr .taskbar .rdxdot i { width: 9px; height: 9px; border-radius: 50%; background: #1fbf6a; box-shadow: 0 0 0 3px rgba(31,191,106,.22); }
+.scr .taskbar .wx { position: absolute; left: 14px; top: 0; bottom: 0; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+
+/* =====================================================================
+   Interactive prototype (prototype.html)
+   ===================================================================== */
+body.proto { margin: 0; height: 100vh; display: flex; flex-direction: column; background: #0b0f15; overflow: hidden; }
+.ptb { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 14px; background: #10151d; border-bottom: 1px solid #243044; color: #dfe7f5; font-size: 12.5px; z-index: 50; }
+.ptb .brand { display: flex; align-items: center; gap: 8px; font-size: 14px; white-space: nowrap; }
+.ptb .brand span { color: #8a9bb6; }
+.ptb .grp { display: flex; align-items: center; gap: 7px; }
+.ptb .lbl { color: #8a9bb6; }
+.ptb select { background: #1b2331; color: #dfe7f5; border: 1px solid #2b374a; border-radius: 8px; padding: 5px 8px; font: inherit; max-width: 210px; }
+.ptb .chip { font: inherit; }
+.pstage { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+#scale { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; border-radius: 10px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,.6); }
+#stage { width: 1280px; height: 720px; }
+.ptoast { position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 20px); opacity: 0; max-width: 90vw; background: #1d2635; color: #fff; padding: 10px 16px; border-radius: 10px; border: 1px solid #33425c; font-size: 13px; transition: .25s; pointer-events: none; z-index: 90; }
+.ptoast.on { opacity: 1; transform: translate(-50%, 0); }
+
+.proto .scr [data-act] { cursor: pointer; }
+.proto .scr .btn:not(.disabled):hover { filter: brightness(.97); }
+.proto .scr .btn.primary:not(.disabled):hover { background: var(--accent-2); }
+.proto .scr .btn:not(.disabled):active { transform: translateY(1px); }
+.proto .scr .btn.disabled { pointer-events: none; }
+.proto .scr .btn:focus-visible, .proto .scr .item:focus-visible, .proto .scr .more:focus-visible, .proto .scr .back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.proto .scr .item:not(.sel):hover { background: rgba(0,0,0,.05); }
+.proto.theme-dark .scr .item:not(.sel):hover { background: rgba(255,255,255,.09); }
+.proto .scr .net:not(.sel):hover { background: rgba(0,0,0,.05); }
+.proto.theme-dark .scr .net:not(.sel):hover { background: rgba(255,255,255,.09); }
+.proto .scr .adv:hover { background: #fff; }
+.proto.theme-dark .scr .adv:hover { background: rgba(255,255,255,.2); }
+.proto .scr .back::before { content: ""; position: absolute; inset: -6px; }
+.proto .scr .back:hover { background: rgba(0,0,0,.07); }
+.proto.theme-dark .scr .back:hover { background: rgba(255,255,255,.14); }
+.proto .scr .sbox:not(.dis):not(.focus):hover { border-bottom-color: var(--accent); }
+.proto .scr .menu div:hover:not(.on) { background: rgba(0,0,0,.06); }
+.proto.theme-dark .scr .menu div:hover:not(.on) { background: rgba(255,255,255,.1); }
+.proto .scr .more:hover { text-decoration: underline; }
+
+.scr .list.scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #b9c4d8 transparent; }
+.theme-dark .scr .list.scroll, .theme-dark .scr .menu { scrollbar-color: rgba(255,255,255,.4) transparent; }
+.scr .menu { max-height: 224px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #b9c4d8 transparent; }
+.scr .menu.up { top: auto; bottom: calc(100% + 4px); }
+.scr .menu .none { color: var(--txt2); }
+.scr .field.open { z-index: 8; }
+.scr .g2c { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.scr .btn.go { min-width: 104px; height: 36px; }
+.scr .btn.busy { background: #5b8fc7; border-color: #5b8fc7; pointer-events: none; }
+.scr .cb.off { background: transparent; border: 1.5px solid #6b7686; }
+.scr .sbox input, .scr .search input { all: unset; flex: 1; min-width: 0; font-size: inherit; color: var(--txt); }
+.scr .search input { font-size: 15px; }
+.scr .sbox input::placeholder, .scr .search input::placeholder { color: #8a93a3; }
+.scr .manualrow { margin-top: 12px; }
+.scr .manualrow .lab { font-size: 13px; color: var(--txt2); margin: 0 0 6px; }
+.scr .empty { padding: 14px 16px; color: var(--txt2); }
+.scr .vrow .ic.wait { background: transparent; }
+.mini-spin { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; animation: sp .8s linear infinite; vertical-align: -2px; }
+.mini-spin.dark { border-color: rgba(0,0,0,.18); border-top-color: var(--accent); }
+.scr .tapdots { position: absolute; left: 0; width: 50%; bottom: 84px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--txt2); font-size: 12px; pointer-events: none; }
+.scr .tapdots .d { display: flex; gap: 8px; }
+.scr .tapdots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(0,0,0,.16); transition: background .2s; }
+.theme-dark .scr .tapdots i { background: rgba(255,255,255,.28); }
+.scr .tapdots i.on { background: var(--accent); }
+.theme-dark .scr .tapdots i.on { background: #fff; }
+.scr .ripple { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 2px solid var(--accent); pointer-events: none; z-index: 20; animation: rip .6s ease-out forwards; }
+@keyframes rip { from { transform: scale(.4); opacity: .95; } to { transform: scale(4.2); opacity: 0; } }
+@keyframes enterR { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes enterL { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+.proto .scr.enter .right, .proto .scr.enter .ah, .proto .scr.enter .af, .proto .scr.enter .aside { animation: enterR .38s ease both; }
+.proto .scr.enter .left { animation: enterL .5s ease both; }
+.proto .scr .toast { animation: toastIn .55s .5s ease both; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(34px); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) { .ptb { gap: 6px 10px; padding: 6px 10px; } .ptb .brand span, .ptb .lbl { display: none; } .ptb select { max-width: 150px; } }
+
+</style>
 </head>
-<body>
-  <main class="card">
-    <span class="pill">Retail Demo Experience</span>
-    <h1>RDX OOBE Experience</h1>
-    <p>Welcome to your hosted RDX onboarding page. This site is now published via GitHub Pages and can be shared to validate deployment and layout behaviour.</p>
+<body class="proto">
+<div class="ptb" id="ptb"></div>
+<div class="pstage" id="pstage"><div id="scale"><div id="stage"></div></div></div>
+<div class="ptoast" id="ptoast"></div>
+<script>
+/* RDX OOBE design review — icon set (24x24 line icons, currentColor) */
+window.RDX = window.RDX || {};
+(function (R) {
+  const svg = (inner, size = 20, o = {}) =>
+    `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${o.fill || 'none'}" stroke="${o.stroke || 'currentColor'}" stroke-width="${o.sw || 1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
 
-    <section class="grid" aria-label="RDX setup">
-      <article class="tile">
-        <h3>OOBE Stage</h3>
-        <p>Device setup and first-run experience content area.</p>
-      </article>
-      <article class="tile">
-        <h3>Demo Readiness</h3>
-        <p>Add scenario notes, QR links, and launch instructions here.</p>
-      </article>
-      <article class="tile">
-        <h3>Content Channel</h3>
-        <p>Publish updates directly from the repository main branch.</p>
-      </article>
-    </section>
+  const I = {
+    back: (s) => svg('<path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/>', s),
+    check: (s, o) => svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>', s, { sw: 2.6, ...o }),
+    close: (s) => svg('<path d="M6 6l12 12M18 6L6 18"/>', s),
+    chevDown: (s) => svg('<path d="M6 9.5l6 6 6-6"/>', s),
+    chevRight: (s) => svg('<path d="M9.5 6l6 6-6 6"/>', s),
+    chevUp: (s) => svg('<path d="M6 14.5l6-6 6 6"/>', s),
+    pin: (s) => svg('<path d="M12 21.5s-6.5-5.7-6.5-11.2a6.5 6.5 0 0 1 13 0c0 5.5-6.5 11.2-6.5 11.2z"/><circle cx="12" cy="10.3" r="2.4"/>', s),
+    store: (s) => svg('<path d="M4 9.5L5.6 4.5h12.8L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.5 2.5S9 10.9 9 9.5c0 1.4 1.1 2.5 3 2.5s3-1.1 3-2.5c0 1.4 1.1 2.5 2.5 2.5S20 10.9 20 9.5"/><path d="M5.5 12v7.5h13V12"/><path d="M10 19.5v-4h4v4"/>', s),
+    gamepad: (s) => svg('<path d="M7.5 7.5h9A4.5 4.5 0 0 1 21 12v2.3a2.9 2.9 0 0 1-5 2l-1.7-2H8.7l-1.7 2a2.9 2.9 0 0 1-5-2V12a4.5 4.5 0 0 1 4.5-4.5z"/><path d="M8 10.2v3.2M6.4 11.8h3.2"/><circle cx="15.4" cy="11" r=".7" fill="currentColor"/><circle cx="17.4" cy="12.8" r=".7" fill="currentColor"/>', s),
+    building: (s) => svg('<path d="M5 21V4.5L13 3v18"/><path d="M13 9l6 1.5V21"/><path d="M3.5 21h17"/><path d="M8 8h2M8 12h2M8 16h2M16 14h.01M16 17.5h.01"/>', s),
+    barcode: (s) => svg('<path d="M4 5v14" stroke-width="2.6"/><path d="M7.5 5v14" stroke-width="1.2"/><path d="M10.5 5v14" stroke-width="2.2"/><path d="M14 5v14" stroke-width="1.2"/><path d="M16.8 5v14" stroke-width="2.6"/><path d="M20 5v14" stroke-width="1.2"/>', s),
+    laptop: (s) => svg('<rect x="5" y="5" width="14" height="10" rx="1.6"/><path d="M3 19h18"/>', s),
+    sliders: (s) => svg('<path d="M4 7h8.5M17.5 7H20M4 12h2.5M11.5 12H20M4 17h9.5M18.5 17H20"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="16" cy="17" r="2.2"/>', s),
+    info: (s) => svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5.2"/><circle cx="12" cy="7.9" r=".8" fill="currentColor" stroke="none"/>', s),
+    shield: (s) => svg('<path d="M12 3l7.2 2.8v5.4c0 4.7-3 8.3-7.2 9.8-4.2-1.5-7.2-5.1-7.2-9.8V5.8L12 3z"/><path d="M8.8 12l2.3 2.3 4.2-4.4"/>', s),
+    lock: (s) => svg('<rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15.5" r="1.1" fill="currentColor" stroke="none"/>', s),
+    search: (s) => svg('<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>', s),
+    wifi: (s) => svg('<path d="M3 9.5a13 13 0 0 1 18 0"/><path d="M6 13a8.5 8.5 0 0 1 12 0"/><path d="M9 16.5a4 4 0 0 1 6 0"/><circle cx="12" cy="19.6" r="1.1" fill="currentColor" stroke="none"/>', s),
+    refresh: (s) => svg('<path d="M20 11a8 8 0 0 0-14-4.5L4 9"/><path d="M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14 4.5L20 15"/><path d="M20 20v-5h-5"/>', s),
+    access: (s) => svg('<circle cx="12" cy="4.8" r="1.9"/><path d="M4.5 8.2L12 9.6l7.5-1.4"/><path d="M12 9.6v4.2"/><path d="M8.2 20.5L12 13.8l3.8 6.7"/>', s),
+    volume: (s) => svg('<path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6"/><path d="M18 6.5a8 8 0 0 1 0 11"/>', s),
+    keyboard: (s) => svg('<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M7 14h10"/>', s),
+    sparkle: (s) => svg('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>', s),
+    globe: (s) => svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 3.8 5.6 3.8 9S14.6 18.4 12 21c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/>', s),
+    eye: (s) => svg('<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>', s),
+    clock: (s) => svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', s),
+    windows: (s) => svg('<rect x="3.5" y="3.5" width="7.8" height="7.8" rx="1" fill="currentColor" stroke="none"/><rect x="12.7" y="3.5" width="7.8" height="7.8" rx="1" fill="currentColor" stroke="none"/><rect x="3.5" y="12.7" width="7.8" height="7.8" rx="1" fill="currentColor" stroke="none"/><rect x="12.7" y="12.7" width="7.8" height="7.8" rx="1" fill="currentColor" stroke="none"/>', s),
+    app: (s) => svg('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.2l1.2 2.6 2.8.3-2.1 1.9.6 2.8-2.5-1.5-2.5 1.5.6-2.8-2.1-1.9 2.8-.3z" stroke-width="1.4"/>', s),
+    film: (s) => svg('<rect x="3.5" y="5" width="17" height="14" rx="2.4"/><path d="M10 9.2l5 2.8-5 2.8z" fill="currentColor"/>', s),
+    hub: (s) => svg('<circle cx="12" cy="12" r="2.6"/><circle cx="12" cy="4.8" r="1.7"/><circle cx="5.4" cy="16.4" r="1.7"/><circle cx="18.6" cy="16.4" r="1.7"/><path d="M12 6.6v2.8M6.9 15.5l2.6-1.5M17.1 15.5l-2.6-1.5"/>', s),
+    mic: (s) => svg('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>', s),
+    battery: (s) => svg('<rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21.5 11v3"/><rect x="5" y="10" width="9" height="5" rx="1" fill="currentColor" stroke="none"/>', s),
+    minus: (s) => svg('<path d="M5 12h14"/>', s, { sw: 1.4 }),
+    square: (s) => svg('<rect x="5.5" y="5.5" width="13" height="13" rx="1.5"/>', s, { sw: 1.4 }),
+    plus: (s) => svg('<path d="M12 5v14M5 12h14"/>', s),
+  };
 
-    <div class="status"><span class="dot" aria-hidden="true"></span>GitHub Pages deployment active</div>
-    <a class="cta" href="#" onclick="alert('RDX OOBE placeholder action'); return false;">Launch Demo Step</a>
-    <p class="small">Edit <code>index.html</code> in GitHub to customize production OOBE content.</p>
-  </main>
+  /* RDX / Demo Hub app marks (not official logos — placeholders for the design review) */
+  I.rdxMark = (s = 28) => `<svg viewBox="0 0 40 40" width="${s}" height="${s}" aria-hidden="true"><defs><linearGradient id="rm${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b8cf6"/><stop offset="1" stop-color="#5b3dd6"/></linearGradient></defs><rect width="40" height="40" rx="10" fill="url(#rm${s})"/><text x="20" y="25.5" text-anchor="middle" font-family="Segoe UI Variable Display,Segoe UI,sans-serif" font-weight="700" font-size="14" fill="#fff" letter-spacing=".5">RDX</text></svg>`;
+  I.hubMark = (s = 28) => `<svg viewBox="0 0 40 40" width="${s}" height="${s}" aria-hidden="true"><defs><linearGradient id="hm${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a5cff"/><stop offset="1" stop-color="#1f8bff"/></linearGradient></defs><rect width="40" height="40" rx="10" fill="url(#hm${s})"/><g fill="#fff"><circle cx="20" cy="20" r="3.6"/><circle cx="20" cy="9.5" r="2.4"/><circle cx="10.6" cy="25.5" r="2.4"/><circle cx="29.4" cy="25.5" r="2.4"/></g><path d="M20 12v4.5M12.6 24.2l4-2.3M27.4 24.2l-4-2.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+
+  R.I = I;
+})(window.RDX);
+
+</script>
+<script>
+/* RDX OOBE design review — illustrations (inline SVG, Windows 11 OOBE-style gradients) */
+window.RDX = window.RDX || {};
+(function (R) {
+  let n = 0;
+  const uid = () => 'a' + (++n);
+
+  const defs = (id) => `
+    <linearGradient id="${id}b" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#1b8cf6"/><stop offset="1" stop-color="#5b3dd6"/></linearGradient>
+    <linearGradient id="${id}w" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e2eafa"/></linearGradient>
+    <linearGradient id="${id}p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a5cff"/><stop offset="1" stop-color="#3a62e8"/></linearGradient>
+    <filter id="${id}s" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="12" stdDeviation="11" flood-color="#2f45c8" flood-opacity=".28"/></filter>
+    <filter id="${id}t" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#1c2f80" flood-opacity=".24"/></filter>`;
+
+  const wrap = (id, inner, extraDefs = '', size = 320) =>
+    `<svg class="art" viewBox="0 0 320 320" width="${size}" height="${size}" aria-hidden="true"><defs>${defs(id)}${extraDefs}</defs>${inner}</svg>`;
+
+  const spark = (x, y, s, c, o = 1) =>
+    `<path transform="translate(${x} ${y}) scale(${s})" d="M0 -10L2.4 -2.4L10 0L2.4 2.4L0 10L-2.4 2.4L-10 0L-2.4 -2.4Z" fill="${c}" opacity="${o}"/>`;
+
+  const art = {};
+
+  /* Language: two speech bubbles */
+  art.language = () => {
+    const id = uid();
+    return wrap(id, `
+      <g filter="url(#${id}s)"><rect x="148" y="96" width="144" height="118" rx="22" fill="url(#${id}w)"/><path d="M228 212l14 38 10-38z" fill="#e4ecfb"/></g>
+      <text x="220" y="176" text-anchor="middle" font-size="68" font-weight="600" fill="#3a5bd0" font-family="'Segoe UI','Yu Gothic UI','Microsoft YaHei UI',sans-serif">文</text>
+      <g filter="url(#${id}s)"><rect x="30" y="64" width="150" height="124" rx="22" fill="url(#${id}b)"/><path d="M76 186l-8 42 44-42z" fill="#4a49d8"/></g>
+      <text x="105" y="150" text-anchor="middle" font-size="86" font-weight="700" fill="#fff" font-family="'Segoe UI Variable Display','Segoe UI',sans-serif">A</text>
+      ${spark(40, 40, 0.9, '#8fb4ff', .9)}${spark(288, 270, 0.7, '#9d8bff', .8)}`);
+  };
+
+  /* Wi-Fi */
+  art.wifi = () => {
+    const id = uid();
+    return wrap(id, `
+      <g transform="translate(0 -8)" filter="url(#${id}s)">
+        <g fill="none" stroke="url(#${id}b)" stroke-width="28" stroke-linecap="round">
+          <path d="M54 136A150 150 0 0 1 266 136"/>
+          <path d="M89 171A100 100 0 0 1 231 171"/>
+          <path d="M123 205A52 52 0 0 1 197 205"/>
+        </g>
+        <circle cx="160" cy="242" r="19" fill="url(#${id}b)"/>
+      </g>`);
+  };
+
+  /* Globe + paper plane (region / location change) */
+  art.globe = () => {
+    const id = uid();
+    return wrap(id, `
+      <circle cx="140" cy="176" r="100" fill="url(#${id}b)" filter="url(#${id}s)"/>
+      <g clip-path="url(#${id}c)" fill="#fff" opacity=".22">
+        <path d="M70 120c20-16 48-20 70-8s20 24 6 34-34 6-44 20-8 32-26 36-32-20-36-42 12-32 30-40z"/>
+        <path d="M168 200c16-8 38-4 46 12s-4 40-22 50-30-4-32-20 0-34 8-42z"/>
+        <path d="M196 116c12-6 28-2 32 10s-6 22-18 24-22-8-20-18 0-12 6-16z"/>
+      </g>
+      <g filter="url(#${id}t)">
+        <path d="M278 108L120 150l60 40z" fill="#fff"/>
+        <path d="M278 108L180 190l20 50z" fill="#eef2fb"/>
+        <path d="M180 190l20 50-8-42z" fill="#c9d4ea" opacity=".8"/>
+      </g>
+      ${spark(60, 56, 0.8, '#8fb4ff', .9)}`,
+      `<clipPath id="${id}c"><circle cx="140" cy="176" r="100"/></clipPath>`);
+  };
+
+  /* Detecting: radar + pin */
+  art.radar = () => {
+    const id = uid();
+    return wrap(id, `
+      <circle cx="160" cy="168" r="146" fill="url(#${id}r)"/>
+      <g fill="none" stroke="#1b8cf6">
+        <circle cx="160" cy="168" r="140" stroke-opacity=".18" stroke-width="2"/>
+        <circle cx="160" cy="168" r="104" stroke-opacity=".28" stroke-width="2"/>
+        <circle cx="160" cy="168" r="68" stroke-opacity=".42" stroke-width="2.5"/>
+      </g>
+      <g fill="#5b3dd6"><circle cx="62" cy="120" r="7" opacity=".55"/><circle cx="262" cy="214" r="7" opacity=".55"/><circle cx="214" cy="52" r="6" opacity=".4"/><circle cx="96" cy="258" r="6" opacity=".4"/></g>
+      <ellipse cx="160" cy="206" rx="26" ry="7" fill="#26338c" opacity=".22"/>
+      <g filter="url(#${id}s)"><path d="M160 96c-22 0-40 18-40 40 0 30 40 70 40 70s40-40 40-70c0-22-18-40-40-40z" fill="url(#${id}b)"/></g>
+      <circle cx="160" cy="136" r="15" fill="#fff"/>`,
+      `<radialGradient id="${id}r"><stop offset="0" stop-color="#1b8cf6" stop-opacity=".20"/><stop offset="1" stop-color="#1b8cf6" stop-opacity="0"/></radialGradient>`);
+  };
+
+  /* Location confirm: map card + pin */
+  art.pin = () => {
+    const id = uid();
+    return wrap(id, `
+      <g transform="rotate(-7 160 190)">
+        <rect x="46" y="112" width="228" height="158" rx="16" fill="#fff" filter="url(#${id}s)"/>
+        <g clip-path="url(#${id}c)">
+          <rect x="46" y="112" width="228" height="158" fill="#e9f1fc"/>
+          <path d="M30 240C90 202 132 258 192 214S264 180 292 172" fill="none" stroke="#bad3f6" stroke-width="28" stroke-linecap="round"/>
+          <rect x="70" y="126" width="64" height="38" rx="6" fill="#d4ead6"/>
+          <path d="M46 182H274M46 134H274M112 112V270M216 112V270" stroke="#fff" stroke-width="10"/>
+          <path d="M150 270L192 112" stroke="#fff" stroke-width="7"/>
+        </g>
+      </g>
+      <ellipse cx="172" cy="206" rx="25" ry="7" fill="#26338c" opacity=".25"/>
+      <g filter="url(#${id}s)"><path d="M172 58c-28 0-50 22-50 50 0 38 50 90 50 90s50-52 50-90c0-28-22-50-50-50z" fill="url(#${id}b)"/></g>
+      <circle cx="172" cy="108" r="20" fill="#fff"/>`,
+      `<clipPath id="${id}c"><rect x="46" y="112" width="228" height="158" rx="16"/></clipPath>`);
+  };
+
+  /* Retailer: storefront */
+  art.store = () => {
+    const id = uid();
+    const scallops = Array.from({ length: 7 }, (_, i) => `<circle cx="${64 + 32 * i}" cy="142" r="16" fill="url(#${id}a)"/>`).join('');
+    return wrap(id, `
+      <ellipse cx="160" cy="262" rx="116" ry="10" fill="#26338c" opacity=".14"/>
+      <rect x="62" y="138" width="196" height="122" rx="10" fill="#fff" filter="url(#${id}s)"/>
+      <g filter="url(#${id}t)"><path d="M48 142L70 84H250L272 142Z" fill="url(#${id}a)"/>${scallops}</g>
+      <g fill="#fff" opacity=".3"><path d="M100 84H124L118 142H88Z"/><path d="M148 84H172V142H148Z"/><path d="M196 84H220L232 142H204Z"/></g>
+      <rect x="80" y="180" width="46" height="46" rx="6" fill="#d9e6fc"/>
+      <rect x="194" y="180" width="46" height="46" rx="6" fill="#d9e6fc"/>
+      <rect x="140" y="184" width="42" height="76" rx="6" fill="#cfe0fb"/>
+      <rect x="170" y="216" width="5" height="14" rx="2.5" fill="#7d8fe0"/>
+      <g transform="translate(216 70) rotate(12)" filter="url(#${id}t)"><rect x="0" y="0" width="64" height="30" rx="8" fill="#fff"/><circle cx="14" cy="15" r="5" fill="#ffb347"/><rect x="26" y="9" width="30" height="5" rx="2.5" fill="#b7c4e6"/><rect x="26" y="18" width="20" height="5" rx="2.5" fill="#d3dcf2"/></g>`,
+      `<linearGradient id="${id}a" gradientUnits="userSpaceOnUse" x1="48" y1="84" x2="272" y2="158"><stop offset="0" stop-color="#1b8cf6"/><stop offset="1" stop-color="#5b3dd6"/></linearGradient>`);
+  };
+
+  /* RAC ID: gaming laptop + controller */
+  art.gaming = () => {
+    const id = uid();
+    return wrap(id, `
+      <g filter="url(#${id}s)">
+        <rect x="50" y="62" width="212" height="140" rx="12" fill="#222a3d"/>
+        <rect x="58" y="70" width="196" height="124" rx="6" fill="url(#${id}p)"/>
+        <circle cx="212" cy="104" r="15" fill="#ffd36e" opacity=".95"/>
+        <path d="M58 194L108 130L146 172L176 142L254 194Z" fill="#2c2f8f" opacity=".75"/>
+        <path d="M58 194L94 156L128 194Z" fill="#4a3fcf" opacity=".85"/>
+        <path d="M28 206H284L270 228Q268 234 260 234H52Q44 234 42 228Z" fill="#cbd5ea"/>
+        <rect x="118" y="212" width="84" height="4" rx="2" fill="#38d0ff"/>
+      </g>
+      <g transform="translate(170 188)" filter="url(#${id}s)">
+        <path d="M30 6H94C112 6 120 20 124 38L128 56C130 70 124 78 112 76C104 75 100 70 94 62L90 56H34L30 62C24 70 20 75 12 76C0 78 -6 70 -4 56L0 38C4 20 12 6 30 6Z" fill="#fff"/>
+        <circle cx="34" cy="28" r="10" fill="#dfe7f7" stroke="#c3cfe8" stroke-width="2"/>
+        <circle cx="82" cy="46" r="10" fill="#dfe7f7" stroke="#c3cfe8" stroke-width="2"/>
+        <path d="M54 40v14M47 47h14" stroke="#9fb0d4" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="98" cy="20" r="4.5" fill="#f5b301"/><circle cx="98" cy="38" r="4.5" fill="#3fbf5b"/><circle cx="89" cy="29" r="4.5" fill="#3b82f6"/><circle cx="107" cy="29" r="4.5" fill="#e5484d"/>
+      </g>
+      ${spark(284, 52, 0.8, '#8fb4ff', .9)}${spark(34, 262, 0.7, '#9d8bff', .8)}`);
+  };
+
+  /* Store ID: hanging sign */
+  art.storeid = () => {
+    const id = uid();
+    return wrap(id, `
+      <path d="M110 38V82M210 38V82" stroke="#8ea2d8" stroke-width="5" stroke-linecap="round"/>
+      <rect x="48" y="74" width="224" height="152" rx="20" fill="url(#${id}b)" filter="url(#${id}s)"/>
+      <circle cx="110" cy="82" r="7" fill="#fff"/><circle cx="210" cy="82" r="7" fill="#fff"/>
+      <text x="160" y="128" text-anchor="middle" font-size="22" font-weight="600" fill="#cfe0ff" letter-spacing="5" font-family="'Segoe UI Variable Display','Segoe UI',sans-serif">STORE</text>
+      <text x="160" y="198" text-anchor="middle" font-size="76" font-weight="700" fill="#fff" font-family="'Segoe UI Variable Display','Segoe UI',sans-serif">123</text>
+      <g transform="translate(246 218)" filter="url(#${id}t)"><circle r="30" fill="#fff"/><path d="M0 -17c-9 0-16 7-16 16 0 13 16 28 16 28s16-15 16-28c0-9-7-16-16-16z" fill="url(#${id}b)"/><circle cy="-1" r="6" fill="#fff"/></g>
+      ${spark(40, 46, 0.8, '#8fb4ff', .9)}`);
+  };
+
+  /* SKU ID: product box + barcode label */
+  art.sku = () => {
+    const id = uid();
+    const widths = [3, 1, 2, 1, 4, 1, 2, 3, 1, 2, 1, 3, 2, 1, 4, 1, 2];
+    let x = 184;
+    const bars = widths.map((w, i) => { const r = i % 2 === 0 ? `<rect x="${x}" y="172" width="${w}" height="44" fill="#26304a"/>` : ''; x += w + 1.6; return r; }).join('');
+    return wrap(id, `
+      <g transform="rotate(-8 150 180)" filter="url(#${id}s)">
+        <rect x="52" y="92" width="190" height="146" rx="16" fill="url(#${id}b)"/>
+        <rect x="52" y="92" width="190" height="34" rx="16" fill="#fff" opacity=".14"/>
+        <rect x="92" y="136" width="72" height="48" rx="6" fill="none" stroke="#fff" stroke-width="5"/>
+        <path d="M80 196h96" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      </g>
+      <g transform="rotate(5 232 204)" filter="url(#${id}t)">
+        <rect x="170" y="152" width="122" height="104" rx="10" fill="#fff"/>
+        ${bars}
+        <text x="231" y="238" text-anchor="middle" font-size="14" font-weight="700" fill="#4b5876" letter-spacing="2" font-family="'Segoe UI Variable Text','Segoe UI',sans-serif">SKU</text>
+      </g>
+      ${spark(278, 62, 0.8, '#8fb4ff', .9)}`);
+  };
+
+  /* Generic laptop (non-gaming collections) */
+  art.device = () => {
+    const id = uid();
+    return wrap(id, `
+      <g filter="url(#${id}s)">
+        <rect x="58" y="66" width="204" height="138" rx="12" fill="#222a3d"/>
+        <rect x="66" y="74" width="188" height="122" rx="6" fill="url(#${id}p)"/>
+        <rect x="82" y="90" width="72" height="48" rx="6" fill="#fff" opacity=".9"/>
+        <rect x="162" y="90" width="76" height="20" rx="5" fill="#fff" opacity=".55"/>
+        <rect x="162" y="118" width="52" height="20" rx="5" fill="#fff" opacity=".35"/>
+        <rect x="82" y="148" width="156" height="32" rx="6" fill="#fff" opacity=".22"/>
+        <path d="M34 208H286L272 232Q270 238 262 238H58Q50 238 48 232Z" fill="#cbd5ea"/>
+        <rect x="132" y="216" width="56" height="4" rx="2" fill="#aebbd8"/>
+      </g>
+      ${spark(286, 56, 0.8, '#8fb4ff', .9)}${spark(30, 262, 0.7, '#9d8bff', .8)}`);
+  };
+
+  /* Cooking pot — states: start | mid | done */
+  art.cook = (state = 'start') => {
+    const id = uid();
+    const done = state === 'done';
+    const tile = (x, y, rot, g) => `<g transform="translate(${x} ${y}) rotate(${rot})" filter="url(#${id}t)"><rect x="-22" y="-22" width="44" height="44" rx="11" fill="#fff"/>${g}</g>`;
+    const winG = `<g fill="url(#${id}b)"><rect x="-10" y="-10" width="9" height="9" rx="1.5"/><rect x="1" y="-10" width="9" height="9" rx="1.5"/><rect x="-10" y="1" width="9" height="9" rx="1.5"/><rect x="1" y="1" width="9" height="9" rx="1.5"/></g>`;
+    const appG = `<rect x="-11" y="-11" width="22" height="22" rx="6" fill="url(#${id}b)"/><path d="M0 -6L1.8 -1.8L6.4 -1.4L2.9 1.6L4 6L0 3.6L-4 6L-2.9 1.6L-6.4 -1.4L-1.8 -1.8Z" fill="#fff"/>`;
+    const filmG = `<circle r="12" fill="url(#${id}b)"/><path d="M-3.5 -6.5L7 0L-3.5 6.5Z" fill="#fff"/>`;
+    const hubG = `<path d="M0 -4.5V-8M-3.6 3.2L-6.9 5.2M3.6 3.2L6.9 5.2" stroke="#5b3dd6" stroke-width="1.8" stroke-linecap="round"/><g fill="url(#${id}b)"><circle r="4"/><circle cy="-10.5" r="2.8"/><circle cx="-9.5" cy="6.5" r="2.8"/><circle cx="9.5" cy="6.5" r="2.8"/></g>`;
+    const flame = (x, h) => `<path transform="translate(${x} 304)" d="M0 0C-8 -10 -3 -${h - 10} 0 -${h}C9 -${h - 9} 8 -9 0 0Z" fill="url(#${id}f)"/>`;
+    const steam = (x, d) => `<path class="steam" style="animation-delay:${d}s" d="M${x} 150c-14-16 14-26 0-44s14-26 0-40" fill="none" stroke="#9db9f2" stroke-width="8" stroke-linecap="round" opacity=".65"/>`;
+    const pot = `
+      <rect x="52" y="190" width="36" height="14" rx="7" fill="#3a56d8"/><rect x="232" y="190" width="36" height="14" rx="7" fill="#3a56d8"/>
+      <rect x="84" y="170" width="152" height="94" rx="22" fill="url(#${id}p)" filter="url(#${id}s)"/>
+      <rect x="76" y="160" width="168" height="18" rx="9" fill="#9aa8ff"/>
+      <rect x="100" y="196" width="22" height="46" rx="11" fill="#fff" opacity=".16"/>`;
+    const burner = `<rect x="70" y="268" width="180" height="9" rx="4.5" fill="#cdd6ea"/>`;
+
+    if (done) {
+      return wrap(id, `
+        ${pot}${burner}
+        <circle cx="160" cy="106" r="66" fill="#2fbf6b" opacity=".16"/>
+        <g filter="url(#${id}s)"><circle cx="160" cy="106" r="46" fill="url(#${id}g)"/></g>
+        <path d="M138 108l15 15 30-33" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        ${spark(78, 74, 1.0, '#ffd36e')}${spark(250, 62, 0.8, '#8fb4ff')}${spark(236, 140, 0.7, '#ffd36e')}${spark(88, 136, 0.6, '#9d8bff')}
+        <circle cx="60" cy="112" r="5" fill="#ff7a59"/><circle cx="262" cy="104" r="5" fill="#38d0ff"/><circle cx="112" cy="40" r="4" fill="#9d8bff"/><circle cx="214" cy="38" r="4" fill="#ffd36e"/>
+        <rect x="204" y="52" width="10" height="4" rx="2" fill="#2fbf6b" transform="rotate(30 209 54)"/><rect x="98" y="76" width="10" height="4" rx="2" fill="#ff7a59" transform="rotate(-25 103 78)"/>`,
+        `<linearGradient id="${id}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3bd17a"/><stop offset="1" stop-color="#0f9d4a"/></linearGradient>`);
+    }
+
+    const tiles = tile(48, 92, -10, winG) + tile(116, 40, 6, appG) + tile(210, 44, -6, filmG) + tile(272, 100, 10, hubG);
+    return wrap(id, `
+      ${tiles}
+      ${steam(138, 0)}${steam(172, 0.6)}${steam(206, 1.2)}
+      ${pot}
+      <g transform="translate(10 -14) rotate(8 160 160)">
+        <path d="M96 160C96 124 224 124 224 160Z" fill="url(#${id}b)" filter="url(#${id}t)"/>
+        <circle cx="160" cy="130" r="9" fill="#fff"/>
+      </g>
+      ${burner}${flame(120, 28)}${flame(160, 34)}${flame(200, 28)}
+      ${spark(24, 160, 0.8, '#8fb4ff', .9)}${spark(298, 190, 0.8, '#9d8bff', .9)}${spark(256, 18, 0.6, '#ffd36e')}`,
+      `<linearGradient id="${id}f" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff6a3d"/><stop offset="1" stop-color="#ffd24d"/></linearGradient>`);
+  };
+
+  /* Windows 11 "Bloom"-style wallpaper (approximation for the mock) */
+  art.wallpaper = () => {
+    const id = uid();
+    const petals = [0, 45, 90, 135, 180, 225, 270, 315]
+      .map((a, i) => `<ellipse cx="170" cy="0" rx="200" ry="${i % 2 ? 54 : 70}" fill="url(#${id}${i % 2 ? 'q' : 'p'})" opacity="${i % 2 ? .7 : .8}" transform="rotate(${a})"/>`).join('');
+    return `<svg class="wp" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="${id}a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9e9fd"/><stop offset=".5" stop-color="#78aeef"/><stop offset="1" stop-color="#2858cc"/></linearGradient>
+        <radialGradient id="${id}c" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        <linearGradient id="${id}p" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a78e6"/><stop offset="1" stop-color="#c3dcfc"/></linearGradient>
+        <linearGradient id="${id}q" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b86ee"/><stop offset="1" stop-color="#e6eefe"/></linearGradient>
+        <filter id="${id}f" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+      </defs>
+      <rect width="1280" height="720" fill="url(#${id}a)"/>
+      <g transform="translate(760 330)" filter="url(#${id}f)">${petals}</g>
+      <circle cx="760" cy="330" r="140" fill="url(#${id}c)"/>
+    </svg>`;
+  };
+
+  R.art = art;
+})(window.RDX);
+
+</script>
+<script>
+/* RDX OOBE design review — screen definitions */
+window.RDX = window.RDX || {};
+(function (R) {
+  const I = R.I, A = R.art;
+  const STEPS = ['Location', 'Retailer', 'Store ID', 'RAC ID', 'SKU ID'];
+  /* Official collection names + customer positioning (RAC codes other than BBYUSGaming are sample values) */
+  const COLLECTIONS = [
+    { key: 'core', name: 'Core Essentials PCs', pos: 'For browsing, email, and streaming', code: 'BBYUSCore' },
+    { key: 'everyday', name: 'Everyday Productivity PCs', pos: 'For everyday projects, school, and multitasking', code: 'BBYUSEveryday' },
+    { key: 'premium', name: 'Premium Performance PCs', pos: 'For all-day work performance with gaming power', code: 'BBYUSPremium' },
+    { key: 'creator', name: 'Creator Pro PCs', pos: 'For advanced apps, creation, and design', code: 'BBYUSCreator' },
+    { key: 'gaming', name: 'Power Gaming PCs', pos: 'For immersive gaming and beyond', code: 'BBYUSGaming' },
+  ];
+
+  /* ---------- building blocks ---------- */
+  const btn = (t, c = '', attrs = '') => `<span class="btn ${c}" ${attrs ? `${attrs} tabindex="0" role="button"` : ''}>${t}</span>`;
+  const sys = (kb) => `<div class="sys">${kb ? I.keyboard(20) : ''}${I.access(20)}${I.volume(20)}</div>`;
+  const stepper = (cur) => `<div class="stepper">` + STEPS.map((s, i) =>
+    (i ? `<span class="seg ${i <= cur ? 'on' : ''}"></span>` : '') +
+    `<div class="st ${i < cur ? 'done' : i === cur ? 'cur' : ''}"><span class="dot">${i < cur ? I.check(12) : ''}</span><span class="lbl">${s}</span></div>`
+  ).join('') + `</div>`;
+
+  function shell(o) {
+    return `<div class="scr ${o.cls || ''}">
+      <div class="card">
+        ${o.back === false ? '' : `<div class="back" ${o.backAttrs ? `${o.backAttrs} tabindex="0" role="button" aria-label="Back"` : ''}>${I.back(20)}</div>`}
+        ${o.step != null ? stepper(o.step) : ''}
+        ${o.pill === false ? '' : `<div class="pill"><i></i>RDX</div>`}
+        ${o.art !== undefined ? `<div class="left" ${o.leftAttrs || ''}>${o.art}</div>` : ''}
+        ${o.body !== undefined ? `<div class="right" ${o.rstyle ? `style="${o.rstyle}"` : ''}>${o.body}</div>` : ''}
+        ${o.extra || ''}
+        ${o.adv ? `<div class="adv" ${o.advAttrs || ''}>${I.sliders(18)}<span>Advanced configuration</span></div>` : ''}
+        ${o.actions ? `<div class="actions">${o.actions}</div>` : ''}
+      </div>
+      ${sys(o.kb)}
+      ${o.overlay || ''}
+    </div>`;
+  }
+
+  const factIcon = (f) => f.ok ? I.shield(18) : f.i === 'wifi' ? I.wifi(18) : I.info(18);
+  function confirm(o) {
+    return shell({
+      step: o.step, adv: true, art: o.art, advAttrs: o.advAttrs, backAttrs: o.backAttrs,
+      body: `<h1>${o.title}</h1>
+        <div class="kicker">${o.kicker}</div>
+        <div class="detected"><span class="ico">${o.icon}</span><div><div class="v">${o.value}</div>${o.sub ? `<div class="s">${o.sub}</div>` : ''}</div></div>
+        <ul class="facts">${o.facts.map((f) => `<li class="${f.ok ? 'ok' : ''}">${factIcon(f)}<span>${f.t}</span></li>`).join('')}</ul>`,
+      rstyle: 'top:96px',
+      actions: btn('No', '', o.noAttrs || '') + btn(o.yes || 'Yes', 'primary', o.yesAttrs || ''),
+    });
+  }
+
+  const item = (name, { sel, tag, code, sub } = {}) =>
+    `<div class="item ${sel ? 'sel' : ''}"><div class="t"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</div>${code ? `<code>${code}</code>` : ''}${tag ? `<span class="tag">${tag}</span>` : ''}</div>`;
+  const search = (ph) => `<div class="search">${I.search(18)}<span>${ph}</span></div>`;
+  const sbox = (v, o = {}) => `<div class="sbox ${o.cls || ''}"><span ${o.ph ? 'class="ph"' : ''}>${v}</span>${o.icon === 'none' ? '' : (o.up ? I.chevUp(18) : I.chevDown(18))}</div>`;
+  const field = (lab, box, cap, style) => `<div class="field" ${style ? `style="${style}"` : ''}><div class="lab">${lab}</div>${box}${cap || ''}</div>`;
+
+  /* ---------- 00–03 entry & basics ---------- */
+  const langs = [['English (United States)', 1], ['English (United Kingdom)'], ['English (Canada)'], ['Español (Estados Unidos)'], ['Français (Canada)'], ['Français (France)'], ['Deutsch (Deutschland)']];
+  const langList = `<div class="list fade" style="height:372px;overflow:hidden">${langs.map(([n, s]) => item(n, { sel: s })).join('')}</div>`;
+  const language = (o = {}) => shell({
+    back: false, pill: o.pill !== false, art: A.language(), overlay: o.overlay, cls: o.cls,
+    body: `<h1>Let’s start with your language</h1>${langList}`,
+    actions: btn('Next', 'primary'),
+  });
+
+  const tap5 = () => language({
+    pill: false, cls: 'dim',
+    overlay: `<div class="scrim"></div>
+      <div class="dialog">
+        <div class="rdxm">${I.rdxMark(60)}</div>
+        <div class="taps">${[1, 2, 3, 4, 5].map((n) => `<span class="tap">${n}</span>`).join('')}</div>
+        <h2>RDX enablement activated</h2>
+        <p>5 taps detected. This device will be set up as a retail demo device.</p>
+        <div class="row">${btn('Cancel')}${btn('Continue', 'primary')}</div>
+      </div>`,
+  });
+
+  const network = () => shell({
+    art: A.wifi(), kb: true,
+    body: `<h1>Let’s connect you to a network</h1>
+      <p class="hint">RDX needs an internet connection to find your store details and download demo content.</p>
+      <div class="nets">
+        <div class="net sel">
+          <div class="r1">${I.wifi(20)}<span>Store-Retail-WiFi</span></div>
+          <div class="sub">Secure</div>
+          <div class="chk"><span class="cb">${I.check(12)}</span>Connect automatically</div>
+          <span class="btn primary go" style="min-width:104px;height:36px">Connect</span>
+        </div>
+        <div class="net">${I.wifi(20)}<span>Store-Guest</span></div>
+        <div class="net">${I.wifi(20)}<span>Contoso-Demo</span></div>
+        <div class="net">${I.wifi(20)}<span>ContosoNet2216</span></div>
+      </div>`,
+    actions: btn('Learn more', 'link'),
+  });
+
+  const detecting = () => shell({
+    art: A.radar(), rstyle: 'top:70px',
+    body: `<div class="busy">
+        <div class="spin"></div>
+        <div class="txt">Finding your store details</div>
+        <div class="sub">This usually takes a few seconds.</div>
+        <div class="steps">
+          <div class="stp done"><span class="ic">${I.check(12)}</span>Connected to Store-Retail-WiFi</div>
+          <div class="stp done"><span class="ic">${I.check(12)}</span>Location found</div>
+          <div class="stp now"><span class="ic"></span>Checking retailer and store…</div>
+          <div class="stp wait"><span class="ic"></span>Checking this device</div>
+        </div>
+      </div>`,
+  });
+
+  /* ---------- 04–08 guided setup ---------- */
+  const location = () => confirm({
+    step: 0, art: A.pin(), title: 'Is this the right location?', kicker: 'Location detected',
+    icon: I.pin(26), value: 'Seattle, WA, United States',
+    facts: [{ t: 'Detected from this device’s network connection.', i: 'wifi' }, { t: 'We use your location to suggest the right retailer, store and demo content.' }],
+  });
+
+  const locationManual = () => shell({
+    step: 0, adv: true, art: A.globe(),
+    body: `<h1>Where is this device?</h1>
+      <p class="hint">Each list only shows options that apply to your previous choice.</p>
+      <div class="g2" style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px">
+        ${field('Region', sbox('North America'))}
+        ${field('Country', sbox('United States'))}
+      </div>
+      ${field('State or province', sbox('Select a state or province', { cls: 'focus', ph: 1, up: 1 }) +
+        `<div class="menu">${['Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin'].map((s) => `<div class="${s === 'Washington' ? 'on' : ''}">${s}</div>`).join('')}</div>`, '', 'z-index:6')}
+      ${field('City or area', sbox('Choose a state or province first', { cls: 'dis' }))}`,
+    actions: btn('Confirm', 'primary disabled'),
+  });
+
+  const retailer = () => confirm({
+    step: 1, art: A.store(), title: 'Is this the right retailer?', kicker: 'Retailer detected',
+    icon: I.store(26), value: 'Best Buy', sub: 'Retailer for Seattle, WA',
+    facts: [{ t: 'Another RDX device on this network is already registered with this retailer.' }, { t: 'Only retailers available in the United States are suggested.' }],
+  });
+
+  const retailerManual = () => shell({
+    step: 1, adv: true, art: A.store(),
+    body: `<h1>Choose your retailer</h1>
+      <p class="hint">Showing retailers in the United States.</p>
+      ${search('Search retailers')}
+      <div class="list">
+        ${item('Best Buy', { sel: 1, tag: 'Detected' })}${item('Contoso Electronics')}${item('Fabrikam Retail')}${item('Northwind Stores')}${item('Tailspin Tech')}
+      </div>`,
+    actions: btn('Confirm', 'primary'),
+  });
+
+  const store = () => confirm({
+    step: 2, art: A.storeid(), title: 'Is this the right store?', kicker: 'Store detected',
+    icon: I.building(26), value: 'Store 123', sub: 'Best Buy · Seattle, WA',
+    facts: [{ t: 'Verified with DMS', ok: 1 }, { t: 'Matches the location you confirmed.' }],
+  });
+
+  const storeManual = () => shell({
+    step: 2, adv: true, art: A.storeid(),
+    body: `<h1>Choose your store</h1>
+      <p class="hint">Best Buy stores near Seattle, WA.</p>
+      ${search('Search by store ID or city')}
+      <div class="list">
+        ${item('Store 123', { sel: 1, sub: 'Seattle, WA · 0.4 mi', tag: 'Detected' })}${item('Store 346', { sub: 'Bellevue, WA · 9.8 mi' })}${item('Store 789', { sub: 'Tukwila, WA · 12.1 mi' })}
+      </div>
+      <div class="more">${I.plus(16)} Enter a Store ID manually</div>`,
+    actions: btn('Confirm', 'primary'),
+  });
+
+  const rac = () => confirm({
+    step: 3, art: A.gaming(), title: 'Is this a Power Gaming PCs device?', kicker: 'Collection detected',
+    icon: I.gamepad(26), value: 'Power Gaming PCs', sub: 'For immersive gaming and beyond<br>RAC ID <code>BBYUSGaming</code>',
+    facts: [{ t: 'Verified with DMS', ok: 1 }, { t: 'Detected for this device at Best Buy, Seattle, WA.' }],
+  });
+
+  const racManual = () => shell({
+    step: 3, adv: true, art: A.gaming(),
+    body: `<h1>Choose a collection</h1>
+      <p class="hint">Collections available for Best Buy in the United States.</p>
+      <div class="list">
+        ${COLLECTIONS.map((c, i) => item(c.name, { sel: i === 4, sub: c.pos, code: c.code, tag: i === 4 ? 'Detected' : '' })).join('')}
+      </div>
+      <div class="more">${I.plus(16)} Enter a RAC ID manually</div>`,
+    actions: btn('Confirm', 'primary'),
+  });
+
+  const sku = () => confirm({
+    step: 4, art: A.sku(), title: 'Is this the right SKU?', kicker: 'SKU detected',
+    icon: I.barcode(26), value: '06571234', sub: 'Contoso Gaming Laptop 16', yes: 'Yes, start setup',
+    facts: [{ t: 'Read from this device’s firmware. Leading zeros are kept.' }, { t: 'After you confirm, RDX starts setting up this device.' }],
+  });
+
+  const skuManual = () => shell({
+    step: 4, adv: true, art: A.sku(),
+    body: `<h1>Enter the SKU ID</h1>
+      <p class="hint">The retailer-assigned SKU or item number for this device.</p>
+      ${field('SKU ID', `<div class="sbox focus"><span>06571234<i class="caret"></i></span></div>`)}
+      <ul class="helper">
+        <li><b>Meaning:</b> The product identifier in your retailer catalog.</li>
+        <li><b>Expected:</b> The exact assigned SKU or item number — keep any leading zeros.</li>
+        <li><b>Where to find it:</b> Product label, retailer catalog or inventory system.</li>
+      </ul>`,
+    actions: btn('Start setup', 'primary'),
+  });
+
+  /* ---------- 09 advanced configuration ---------- */
+  const advanced = () => shell({
+    back: false,
+    extra: `
+      <div class="ah"><h1>Advanced configuration</h1><p>Review or change everything on one screen. Only options that apply to this store are shown.</p></div>
+      <div class="af">
+        <div class="sec">Location<span class="only" style="margin-left:auto;text-transform:none;letter-spacing:0">${I.sliders(14)} Showing only options for this store</span></div>
+        <div class="g4">
+          ${field('Region', sbox('North America'))}
+          ${field('Country', sbox('United States'))}
+          ${field('State or province', sbox('Washington'))}
+          ${field('City or area', sbox('Seattle'))}
+        </div>
+        <div class="sec">Retail details</div>
+        <div class="g2">
+          ${field('Retailer', sbox('Best Buy'), `<div class="cap">5 retailers in the United States</div>`)}
+          ${field('Store ID', sbox('123 · Seattle, WA'), `<div class="cap ok">${I.check(13)} Verified with DMS · 3 stores near Seattle</div>`)}
+          ${field('RAC ID', sbox('Power Gaming PCs · BBYUSGaming'), `<div class="cap ok">${I.check(13)} Verified with DMS · 5 collections for Best Buy</div>`)}
+          ${field('SKU ID', `<div class="sbox"><span>06571234</span></div>`, `<div class="cap">Detected from this device · leading zeros kept</div>`)}
+        </div>
+      </div>
+      <div class="aside">
+        <div class="panel"><h3>${I.info(20)} Why these details are pre-filled</h3>
+          <p>Another RDX device on this network has a DMS-validated RAC ID and Store ID that match your detected location, so we used the same details here.</p></div>
+        <div class="panel"><h3>${I.shield(20)} DMS validation</h3>
+          <div class="vrow"><span class="ic">${I.check(13)}</span>Store ID verified</div>
+          <div class="vrow"><span class="ic">${I.check(13)}</span>RAC ID verified</div>
+          <p style="margin-top:10px">The selected RAC ID and Store ID have been validated with DMS.</p>
+          ${btn(I.refresh(16) + ' Validate again')}</div>
+      </div>
+      <div class="adv" style="left:70px">${I.back(18)}<span>Back to guided setup</span></div>
+      <div class="actions">${btn('Apply and start setup', 'primary')}</div>`,
+  });
+
+  /* ---------- 10–12 RDX is cooking ---------- */
+  const taskRow = ([k, name, st, p]) =>
+    `<div class="task ${k}"><span class="ic">${k === 'ok' ? I.check(16) : ''}</span><div class="nm">${name}${k === 'now' ? `<div class="pb"><i style="width:${p}%"></i></div>` : ''}</div><span class="st">${st}</span></div>`;
+  const TASKS = {
+    a: [['now', 'Updating Windows', '72%', 72], ['wait', 'Updating app', 'Waiting'], ['wait', 'Downloading Attract loop', 'Waiting'], ['wait', 'Updating Demo Hub', 'Waiting']],
+    b: [['ok', 'Updating Windows', 'Done'], ['ok', 'Updating app', 'Done'], ['now', 'Downloading Attract loop', '64%', 64], ['wait', 'Updating Demo Hub', 'Waiting']],
+    done: [['ok', 'Updating Windows', 'Done'], ['ok', 'Updating app', 'Done'], ['ok', 'Downloading Attract loop', 'Done'], ['ok', 'Updating Demo Hub', 'Done']],
+  };
+  const recap = `<div class="recap">
+    <span class="rchip">${I.pin(14)}Seattle, WA</span><span class="rchip">${I.store(14)}Best Buy</span>
+    <span class="rchip">${I.building(14)}Store 123</span><span class="rchip">${I.gamepad(14)}Power Gaming PCs · BBYUSGaming</span><span class="rchip">${I.barcode(14)}SKU 06571234</span></div>`;
+  const cooking = (st) => {
+    const done = st === 'done';
+    return shell({
+      back: false, art: A.cook(done ? 'done' : 'start'), extra: recap, rstyle: 'top:62px',
+      body: `${done ? `<div class="lockpill ok">${I.check(16)} Setup complete</div>` : `<div class="lockpill">${I.lock(16)} This device is locked while we finish setup</div>`}
+        <h1>${done ? 'All done!' : 'RDX is cooking in the background'}</h1>
+        <div class="sub2">${done ? 'RDX is ready. Your device is set up and good to go.' : 'Stay connected while we finish up.'}</div>
+        <div class="tasks">${TASKS[st].map(taskRow).join('')}</div>
+        ${done ? '' : `<div class="funny">${I.sparkle(18)}<span>Hands off, chef at work! Good demos take a few minutes to simmer. This screen unlocks when everything turns green.</span></div>`}`,
+      actions: done ? btn('Continue', 'primary') : '',
+    });
+  };
+
+  /* ---------- 13 Windows 11 desktop, configured for RDX ---------- */
+  const COLL_ICON = { core: I.laptop, everyday: I.app, premium: I.sparkle, creator: I.film, gaming: I.gamepad };
+  const DESK_DEFAULT = { retailer: 'Best Buy', store: '123', key: 'gaming', name: 'Power Gaming PCs', pos: 'For immersive gaming and beyond', code: 'BBYUSGaming' };
+  /* Demo Hub tile text is placeholder content */
+  const DESK_TILES = {
+    core: [['Everyday apps', 'Browse, email and more'], ['Streaming', 'Movies, music and TV'], ['Battery life', 'Stay unplugged longer']],
+    everyday: [['Projects', 'Docs, slides and more'], ['School and study', 'Notes, research, homework'], ['Multitasking', 'Snap layouts and desktops']],
+    premium: [['All-day performance', 'Power through your workday'], ['Gaming power', 'Play when work is done'], ['Display and audio', 'Sharper, louder, clearer']],
+    creator: [['Creative apps', 'Photo, video and music'], ['Editing and design', 'Fast, fluid workflows'], ['Pro displays', 'True-to-life color']],
+    gaming: [['Featured games', 'Curated for gaming PCs'], ['Performance', 'Frame rates and graphics'], ['Accessories', 'Controllers and headsets']],
+  };
+  const TILE_BG = ['linear-gradient(135deg,#1b8cf6,#5b3dd6)', 'linear-gradient(135deg,#2fbf6b,#0f9d4a)', 'linear-gradient(135deg,#ff9f43,#ff6a3d)'];
+  const desktop = (info) => {
+    info = info || DESK_DEFAULT;
+    const tiles = DESK_TILES[info.key] || DESK_TILES.core;
+    const collIcon = (COLL_ICON[info.key] || I.laptop)(14);
+    const ti = (inner, cls = '') => `<div class="ti ${cls}">${inner}</div>`;
+    const folder = `<svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#f4c04c"/><path d="M3 10h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#f9d97c"/></svg>`;
+    const browser = `<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#1fa7a0"/><path d="M4.5 14.5a8 8 0 0 0 14.5-3.2c0-3.2-2.6-5-5.2-5-3.3 0-6 2.4-6 5.3 0 1.6 1.2 2.6 2.7 2.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="10" fill="none" stroke="#1b6fd6" stroke-width="2" stroke-dasharray="30 40" transform="rotate(-30 12 12)"/></svg>`;
+    const storeI = `<svg viewBox="0 0 24 24" width="24" height="24"><path d="M5 8h14l-1 12H6z" fill="#2a6fdb"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="#2a6fdb" stroke-width="1.8"/><g><rect x="8.4" y="11" width="3.2" height="3.2" fill="#f25022"/><rect x="12.4" y="11" width="3.2" height="3.2" fill="#7fba00"/><rect x="8.4" y="15" width="3.2" height="3.2" fill="#00a4ef"/><rect x="12.4" y="15" width="3.2" height="3.2" fill="#ffb900"/></g></svg>`;
+    const taskview = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1b1f27" stroke-width="1.6"><rect x="3" y="6" width="12" height="10" rx="2"/><path d="M9 19h9a3 3 0 0 0 3-3V9" stroke-linecap="round"/></svg>`;
+    const games = `<svg viewBox="0 0 24 24" width="26" height="26"><rect x="1" y="1" width="22" height="22" rx="6" fill="#107c10"/><g color="#fff" transform="translate(3 3) scale(.75)">${I.gamepad(24)}</g></svg>`;
+    const recycle = `<svg viewBox="0 0 44 44" width="44" height="44"><path d="M10 14h24l-2 26H12z" fill="#eef4fc" stroke="#9db4d8" stroke-width="1.5"/><path d="M8 14h28" stroke="#9db4d8" stroke-width="2.5" stroke-linecap="round"/><path d="M17 9h10v5H17z" fill="#c8d8f0"/><path d="M17 20v14M22 20v14M27 20v14" stroke="#b3c6e4" stroke-width="1.5"/></svg>`;
+    return `<div class="scr desktop">
+      ${A.wallpaper()}
+      <div class="dicons">
+        <div class="dicon"><div class="g">${recycle}</div>Recycle Bin</div>
+        <div class="dicon"><div class="g">${I.hubMark(44)}</div>Demo Hub</div>
+      </div>
+      <div class="win">
+        <div class="tb">${I.hubMark(18)}<span>Demo Hub</span><div class="ctl"><span>${I.minus(14)}</span><span>${I.square(12)}</span><span>${I.close(14)}</span></div></div>
+        <div class="bd">
+          <div class="rail"><span class="on">${I.hub(20)}</span><span>${I.gamepad(20)}</span><span>${I.film(20)}</span><span>${I.sparkle(20)}</span></div>
+          <div class="main">
+            <div class="hero"><span class="chipw">${collIcon} ${info.name}</span><h3>${info.pos}</h3><p>${info.retailer} · Store ${info.store}</p><div class="deco">${info.key === 'gaming' ? A.gaming() : A.device()}</div></div>
+            <div class="tiles">
+              ${tiles.map((t, i) => `<div class="tile"><i style="background:${TILE_BG[i]}"></i><div>${t[0]}<small>${t[1]}</small></div></div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="toast">
+        <div class="h">${I.rdxMark(18)}<span>RDX</span><span class="x">${I.close(14)}</span></div>
+        <b>RDX is ready</b>
+        <p>Demo Hub and the Attract loop are up to date. This device is set up for retail demo.</p>
+        <div class="tags"><span>${info.retailer}</span><span>Store ${info.store}</span><span>${info.name}</span><span>${info.code}</span></div>
+      </div>
+      <div class="taskbar">
+        ${ti(`<span style="color:#0a6fd6">${I.windows(22)}</span>`)}${ti(I.search(20))}${ti(taskview)}${ti(folder, 'on')}${ti(browser)}${ti(storeI)}${ti(games)}${ti(I.hubMark(26), 'on hot')}
+        <div class="tray"><div class="rdxdot"><i></i>RDX</div>${I.chevUp(14)}${I.wifi(17)}${I.volume(17)}${I.battery(19)}<div class="clock">10:42 AM<br>11/17/2026</div></div>
+      </div>
+    </div>`;
+  };
+
+  /* ---------- registry ---------- */
+  R.STEPS = STEPS;
+  R.phases = [
+    { id: 'basics', n: '1', title: 'Entry & basics', desc: 'Hidden 5-tap trigger, then language and connectivity. Standard Windows 11 OOBE look, with an RDX pill so it’s clear the device is in RDX mode.' },
+    { id: 'guided', n: '2', title: 'Guided setup — one question at a time', desc: 'The service auto-detects location, retailer, store ID, RAC ID and SKU ID. Each screen asks “Is this correct?”: Yes moves on, No opens a manual picker and then continues. The Advanced configuration shortcut sits on every guided screen.' },
+    { id: 'advanced', n: '3', title: 'Advanced configuration', desc: 'The single-screen path for manual setup, reachable from any guided screen. Built from the current RDX screen, restyled to match OOBE, with options filtered to what applies to the store.' },
+    { id: 'cooking', n: '4', title: 'RDX is cooking', desc: 'Playful locked-out screen while Windows, the app, the Attract loop and Demo Hub update. Items turn green over time; Continue unlocks when all are green.' },
+    { id: 'ready', n: '5', title: 'Ready', desc: 'Windows 11 desktop, fully configured for RDX.' },
+  ];
+
+  R.screens = [
+    { id: '00', short: '5-tap entry', routes: [['Continue', '01'], ['Cancel', 'Standard Windows OOBE']], phase: 'basics', title: '5-tap entry', html: tap5, notes: ['Five taps on the first OOBE screen opens a confirmation, so it can’t be triggered by accident.', 'Continue goes to Language. Cancel returns to standard Windows OOBE.'] },
+    { id: '01', short: 'Language', routes: [['Next', '02']], phase: 'basics', title: 'Language', html: () => language(), notes: ['First RDX screen. Same list pattern as the Windows 11 country/region screen.', 'The RDX pill stays visible from here on.'] },
+    { id: '02', short: 'Network', routes: [['Connect', '03']], phase: 'basics', title: 'Connect to a network', html: network, notes: ['Mirrors the Windows 11 Wi-Fi screen. No Skip: detection needs a connection.'] },
+    { id: '03', short: 'Detecting', routes: [['Auto-advances', '04']], phase: 'basics', title: 'Finding your store details', html: detecting, notes: ['Transient screen while the service detects location, retailer, store and device, then auto-advances.', 'If a category can’t be detected, its question opens directly on the manual picker.'] },
+
+    { id: '04', short: 'Location', routes: [['Yes', '05'], ['No', '04b']], phase: 'guided', title: 'Location — detected', html: location, notes: ['The detected value uses the highlighted OOBE selection bar.', 'Yes goes to Retailer. No opens the manual picker.', 'Step tracker and the Advanced configuration shortcut appear on every guided screen.'] },
+    { id: '04b', short: 'Change location', routes: [['Confirm', '05']], alt: 1, phase: 'guided', title: 'Location — change', html: locationManual, notes: ['Region → Country → State/Province → City cascade. Each list only shows valid options for the choice above it.', 'Confirm stays disabled until the chain is complete, then continues to Retailer.'] },
+    { id: '05', short: 'Retailer', routes: [['Yes', '06'], ['No', '05b']], phase: 'guided', title: 'Retailer — detected', html: retailer, notes: ['Short “why” line so staff can trust the suggestion.',     'Yes goes to Store ID. No opens the retailer list.'] },
+    { id: '05b', short: 'Choose retailer', routes: [['Confirm', '06']], alt: 1, phase: 'guided', title: 'Retailer — change', html: retailerManual, notes: ['Filtered to the confirmed country, with search for long lists.', 'Retailers other than Best Buy are placeholder names.'] },
+    { id: '06', short: 'Store ID', routes: [['Yes', '07'], ['No', '06b']], phase: 'guided', title: 'Store ID — detected', html: store, notes: ['Same pattern: confirm or change. Verified with DMS.', 'Yes goes to RAC ID. No opens the store list.'] },
+    { id: '06b', short: 'Choose store', routes: [['Confirm', '07']], alt: 1, phase: 'guided', title: 'Store ID — change', html: storeManual, notes: ['Stores near the confirmed location, nearest first, with search and manual entry.'] },
+    { id: '07', short: 'RAC ID', routes: [['Yes', '08'], ['No', '07b']], phase: 'guided', title: 'RAC ID — detected', html: rac, notes: ['Official collection name and customer positioning, plus the exact RAC ID and the DMS verified check from the current RDX screen.', 'Yes goes to SKU ID. No opens the list of collections.'] },
+    { id: '07b', short: 'Choose collection', routes: [['Confirm', '08']], alt: 1, phase: 'guided', title: 'RAC ID — change', html: racManual, notes: ['The five official collections available for this retailer and country, each with its customer positioning and RAC ID.', '“Enter manually” covers a code that isn’t in the list.'] },
+    { id: '08', short: 'SKU ID', routes: [['Yes, start setup', '10'], ['No', '08b']], phase: 'guided', title: 'SKU ID — detected', html: sku, notes: ['Read from the device where possible.', 'This Yes starts the setup, so the button reads “Yes, start setup”.'] },
+    { id: '08b', short: 'Enter SKU ID', routes: [['Start setup', '10']], alt: 1, phase: 'guided', title: 'SKU ID — enter', html: skuManual, notes: ['Free text that keeps leading zeros. Helper text is carried over from the current RDX screen.'] },
+
+    { id: '09', short: 'Advanced configuration', routes: [['Apply and start setup', '10'], ['Back to guided setup', 'Previous guided screen']], phase: 'advanced', title: 'Advanced configuration', html: advanced, notes: ['Everything on one screen. Lists are filtered to what applies to this store.', 'Keeps the “Why pre-filled” and DMS validation panels from the current RDX screen.', 'Apply and start setup skips straight to the cooking screen.'] },
+
+    { id: '10', short: 'RDX is cooking', routes: [['Updates run in the background', '11']], phase: 'cooking', title: 'RDX is cooking — starting', html: () => cooking('a'), notes: ['Locked-out message with a setup recap so the store can spot a wrong value early.', 'Items show waiting, in progress, then green.'] },
+    { id: '11', short: 'RDX is cooking', routes: [['All four items green', '12']], phase: 'cooking', title: 'RDX is cooking — in progress', html: () => cooking('b'), notes: ['Items turn green over time. The active item shows progress.'] },
+    { id: '12', short: 'All done', routes: [['Continue', '13']], phase: 'cooking', title: 'All done', html: () => cooking('done'), notes: ['Continue unlocks only when all four items are green.'] },
+
+    { id: '13', short: 'Windows 11 desktop', routes: [], phase: 'ready', title: 'Windows 11 desktop — RDX configured', html: () => desktop(), notes: ['Demo Hub is pinned and open, RDX status sits in the tray, and a toast summarises the setup.', 'Demo Hub content is a placeholder.'] },
+  ];
+
+  /* shared pieces for the interactive prototype */
+  R.ui = { shell, btn, sys, stepper, confirm, desktop, language, network, STEPS, COLLECTIONS, COLL_ICON };
+})(window.RDX);
+
+</script>
+<script>
+/* RDX OOBE prototype — sample data. Retailer names other than the ones in the current RDX screen,
+   plus all store IDs, SKUs and RAC codes except BBYUSGaming, are placeholders for the prototype. */
+window.RDX = window.RDX || {};
+(function (R) {
+  const D = {};
+  const COLL = R.ui.COLLECTIONS;
+  const SUFFIX = { core: 'Core', everyday: 'Everyday', premium: 'Premium', creator: 'Creator', gaming: 'Gaming' };
+
+  D.langs = ['English (United States)', 'English (United Kingdom)', 'English (Canada)', 'Español (Estados Unidos)', 'Español (México)', 'Français (Canada)', 'Français (France)', 'Deutsch (Deutschland)', 'Italiano (Italia)', 'Português (Brasil)', '日本語 (日本)', '中文(简体，中国)'];
+  D.networks = [
+    { name: 'Store-Retail-WiFi', secure: true },
+    { name: 'Store-Guest', secure: false },
+    { name: 'Contoso-Demo', secure: true },
+    { name: 'ContosoNet2216', secure: true },
+  ];
+  D.sku = { id: '06571234', name: 'Contoso Gaming Laptop 16' };
+
+  /* Region > Country > State/Province > City */
+  D.geo = {
+    'North America': {
+      'United States': {
+        'Washington': ['Seattle', 'Bellevue', 'Tukwila', 'Spokane'],
+        'Oregon': ['Portland', 'Salem', 'Eugene'],
+        'California': ['Los Angeles', 'San Francisco', 'San Diego', 'San Jose'],
+        'Texas': ['Austin', 'Dallas', 'Houston'],
+        'New York': ['New York', 'Buffalo', 'Albany'],
+      },
+      'Canada': {
+        'British Columbia': ['Vancouver', 'Victoria', 'Kelowna'],
+        'Ontario': ['Toronto', 'Ottawa', 'Mississauga'],
+        'Quebec': ['Montréal', 'Québec City'],
+      },
+    },
+    'Europe': {
+      'France': { 'Île-de-France': ['Paris', 'Versailles'], 'Auvergne-Rhône-Alpes': ['Lyon', 'Grenoble'], 'Provence-Alpes-Côte d’Azur': ['Marseille', 'Nice'] },
+      'United Kingdom': { 'England': ['London', 'Manchester', 'Birmingham'], 'Scotland': ['Edinburgh', 'Glasgow'], 'Wales': ['Cardiff', 'Swansea'] },
+      'Germany': { 'Berlin': ['Berlin'], 'Bavaria': ['Munich', 'Nuremberg'], 'Hesse': ['Frankfurt', 'Wiesbaden'] },
+    },
+    'Asia Pacific': {
+      'Japan': { 'Tokyo': ['Shinjuku', 'Shibuya', 'Akihabara'], 'Osaka': ['Osaka', 'Namba'] },
+      'Australia': { 'New South Wales': ['Sydney', 'Newcastle'], 'Victoria': ['Melbourne', 'Geelong'] },
+    },
+  };
+  D.abbr = { Washington: 'WA', Oregon: 'OR', California: 'CA', Texas: 'TX', 'New York': 'NY', 'British Columbia': 'BC', Ontario: 'ON', Quebec: 'QC' };
+  D.stateLabel = (country) => ({ 'United States': 'State', Canada: 'Province or territory', Japan: 'Prefecture', Australia: 'State or territory', France: 'Administrative region', 'United Kingdom': 'Nation', Germany: 'State' }[country] || 'State or province');
+
+  D.regions = () => Object.keys(D.geo);
+  D.countries = (r) => Object.keys(D.geo[r] || {});
+  D.states = (r, c) => Object.keys((D.geo[r] || {})[c] || {});
+  D.cities = (r, c, s) => (((D.geo[r] || {})[c] || {})[s]) || [];
+
+  D.retailers = {
+    'United States': ['Best Buy', 'Contoso Electronics', 'Fabrikam Retail', 'Northwind Stores', 'Tailspin Tech'],
+    Canada: ['Best Buy Canada', 'Contoso Electronics', 'Fabrikam Retail'],
+    France: ['Boulanger', 'Contoso Electronics'],
+    'United Kingdom': ['Dixons (Currys)', 'Contoso Electronics'],
+    Germany: ['Contoso Electronics', 'Fabrikam Retail'],
+    Japan: ['BIC Camera', 'Contoso Electronics'],
+    Australia: ['Contoso Electronics', 'Northwind Stores'],
+  };
+  D.retailersFor = (country) => D.retailers[country] || [];
+  D.defRetailer = (country) => D.retailersFor(country)[0];
+
+  /* Which of the five collections each retailer has (shows the "only relevant options" filtering) */
+  D.racKeys = {
+    'Best Buy': ['core', 'everyday', 'premium', 'creator', 'gaming'],
+    'Best Buy Canada': ['core', 'everyday', 'premium', 'creator', 'gaming'],
+    'Boulanger': ['core', 'everyday', 'premium', 'gaming'],
+    'Dixons (Currys)': ['core', 'everyday', 'premium'],
+    'BIC Camera': ['core', 'everyday', 'premium', 'creator', 'gaming'],
+    'Contoso Electronics': ['core', 'everyday', 'premium', 'creator'],
+    'Fabrikam Retail': ['core', 'everyday', 'gaming'],
+    'Northwind Stores': ['core', 'everyday', 'premium'],
+    'Tailspin Tech': ['core', 'gaming'],
+  };
+  const RET_ABBR = { 'Best Buy': 'BBY', 'Best Buy Canada': 'BBY', Boulanger: 'BOU', 'Dixons (Currys)': 'DIX', 'BIC Camera': 'BIC', 'Contoso Electronics': 'CTS', 'Fabrikam Retail': 'FAB', 'Northwind Stores': 'NWS', 'Tailspin Tech': 'TSP' };
+  const CC = { 'United States': 'US', Canada: 'CA', France: 'FR', 'United Kingdom': 'UK', Germany: 'DE', Japan: 'JP', Australia: 'AU' };
+
+  D.racsFor = (retailer, country) => (D.racKeys[retailer] || ['core']).map((k) => {
+    const c = COLL.find((x) => x.key === k);
+    return { key: k, name: c.name, pos: c.pos, code: `${RET_ABBR[retailer] || 'RDX'}${CC[country] || 'XX'}${SUFFIX[k]}` };
+  });
+  D.defRac = (retailer) => { const ks = D.racKeys[retailer] || ['core']; return ks.includes('gaming') ? 'gaming' : ks[0]; };
+
+  const hash = (s) => { let h = 7; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+  D.place = (loc, city) => { const a = D.abbr[loc.state]; return a ? `${city}, ${a}` : city; };
+  D.storesFor = (retailer, loc) => {
+    if (retailer === 'Best Buy' && loc.city === 'Seattle') {
+      return [{ id: '123', place: 'Seattle, WA', dist: '0.4 mi' }, { id: '346', place: 'Bellevue, WA', dist: '9.8 mi' }, { id: '789', place: 'Tukwila, WA', dist: '12.1 mi' }];
+    }
+    const metric = !['United States', 'United Kingdom'].includes(loc.country);
+    const near = D.cities(loc.region, loc.country, loc.state).filter((c) => c !== loc.city);
+    const places = [loc.city, near[0] || `${loc.city} North`, near[1] || `${loc.city} South`];
+    const dist = metric ? ['0.7 km', '13.2 km', '23.4 km'] : ['0.4 mi', '8.2 mi', '14.5 mi'];
+    const h = hash(`${retailer}|${loc.city}`);
+    const ids = [100 + (h % 800), 100 + ((h * 7 + 13) % 800), 100 + ((h * 13 + 29) % 800)];
+    if (ids[1] === ids[0]) ids[1] += 1;
+    if (ids[2] === ids[0] || ids[2] === ids[1]) ids[2] += 2;
+    return ids.map((id, i) => ({ id: String(id), place: D.place(loc, places[i]), dist: dist[i] }));
+  };
+  D.defStore = (retailer, loc) => D.storesFor(retailer, loc)[0].id;
+
+  D.locLabel = (loc) => `${loc.city}, ${D.abbr[loc.state] ? D.abbr[loc.state] + ', ' : ''}${loc.country}`;
+  D.shortPlace = (loc) => D.place(loc, loc.city);
+
+  R.data = D;
+})(window.RDX);
+
+</script>
+<script>
+/* RDX 5-tap OOBE — interactive prototype
+   Reuses the design-review screens (screens.js) and styles, adds state, navigation and timers. */
+(function (R) {
+  const I = R.I, A = R.art, U = R.ui, D = R.data;
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const q = new URLSearchParams(location.search);
+  const stageEl = $('#stage');
+
+  const NAME = { lang: ['01', 'Language'], net: ['02', 'Network'], detect: ['03', 'Detecting'], loc: ['04', 'Location'], locEdit: ['04b', 'Change location'], ret: ['05', 'Retailer'], retEdit: ['05b', 'Choose retailer'], store: ['06', 'Store ID'], storeEdit: ['06b', 'Choose store'], rac: ['07', 'RAC ID'], racEdit: ['07b', 'Choose collection'], sku: ['08', 'SKU ID'], skuEdit: ['08b', 'Enter SKU ID'], adv: ['09', 'Advanced configuration'], cook: ['10', 'RDX is cooking'], desktop: ['13', 'Windows 11 desktop'] };
+  const CHAIN = ['lang', 'net', 'loc', 'ret', 'store', 'rac', 'sku'];
+  const BASE = { locEdit: 'loc', retEdit: 'ret', storeEdit: 'store', racEdit: 'rac', skuEdit: 'sku' };
+  const NEXT = { loc: 'ret', ret: 'store', store: 'rac', rac: 'sku', sku: 'cook' };
+  const NO = { loc: 'locEdit', ret: 'retEdit', store: 'storeEdit', rac: 'racEdit', sku: 'skuEdit' };
+
+  /* ---------- state ---------- */
+  const fresh = (keep) => {
+    const loc = { region: 'North America', country: 'United States', state: 'Washington', city: 'Seattle' };
+    const retailer = D.defRetailer(loc.country);
+    return Object.assign({
+      screen: null, hist: [], advFrom: 'loc',
+      rdx: false, taps: 0, dialog: false, lang: D.langs[0],
+      net: { sel: D.networks[0].name, auto: true, busy: false },
+      cur: { loc, retailer, rac: D.defRac(retailer), racCustom: '', store: D.defStore(retailer, loc), storeCustom: '', sku: D.sku.id },
+      edited: {}, draft: {}, ui: { open: null, q: '', manual: false, focus: null },
+      detect: 1, cook: { i: 0, p: 0, done: false }, dms: 'ok',
+    }, keep);
+  };
+  let S = fresh({ theme: 'light', speed: 1 });
+
+  /* ---------- helpers ---------- */
+  let timers = [];
+  const later = (fn, ms) => { const t = setTimeout(fn, ms / S.speed); timers.push(t); return t; };
+  const every = (fn, ms) => { const t = setInterval(fn, ms); timers.push(t); return t; };
+  const clearTimers = () => { timers.forEach((t) => { clearTimeout(t); clearInterval(t); }); timers = []; };
+  const patch = (sel, html) => { const el = $(sel, stageEl); if (el) el.innerHTML = html; };
+  let toastT;
+  const toast = (msg) => { const el = $('#ptoast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3400); };
+
+  const L = () => S.cur.loc;
+  const racList = () => D.racsFor(S.cur.retailer, L().country);
+  const racObj = () => S.cur.rac === 'custom'
+    ? { key: 'custom', name: 'Custom RAC ID', pos: 'Entered manually', code: S.cur.racCustom }
+    : (racList().find((r) => r.key === S.cur.rac) || racList()[0]);
+  const storeList = () => D.storesFor(S.cur.retailer, L());
+  const storeObj = () => S.cur.store === 'custom'
+    ? { id: S.cur.storeCustom, place: 'Entered manually', dist: '' }
+    : (storeList().find((s) => s.id === S.cur.store) || storeList()[0]);
+  const collIcon = (key, n) => (U.COLL_ICON[key] || I.laptop)(n);
+
+  const resetBelowRetailer = () => { S.cur.rac = D.defRac(S.cur.retailer); S.cur.racCustom = ''; S.cur.store = D.defStore(S.cur.retailer, L()); S.cur.storeCustom = ''; S.edited.rac = false; S.edited.store = false; };
+  const setRetailer = (r) => { S.cur.retailer = r; resetBelowRetailer(); };
+  const resetBelowLoc = () => { S.cur.retailer = D.defRetailer(L().country); S.edited.retailer = false; resetBelowRetailer(); };
+  const setLoc = (l) => { S.cur.loc = { ...l }; resetBelowLoc(); };
+  const touchDms = () => { S.dms = 'checking'; later(() => { S.dms = 'ok'; if (S.screen === 'adv') render(); }, 900); };
+
+  /* dropdown (matches the design: field label + select box + menu) */
+  const opts = (arr) => arr.map((v) => ({ v, t: v }));
+  const dd = (id, label, text, list, o = {}) => {
+    const open = S.ui.open === id;
+    const menu = open ? `<div class="menu ${o.up ? 'up' : ''}">${list.map((x) => `<div class="${x.v === o.value ? 'on' : ''}" data-act="pick" data-id="${id}" data-v="${esc(x.v)}">${x.t}</div>`).join('') || '<div class="none">No options</div>'}</div>` : '';
+    return `<div class="field ${open ? 'open' : ''}"><div class="lab">${label}</div>
+      <div class="sbox ${open ? 'focus' : ''} ${o.disabled ? 'dis' : ''}" ${o.disabled ? '' : `data-act="dd" data-id="${id}"`}><span ${text ? '' : 'class="ph"'}>${text || o.ph || 'Select'}</span>${open ? I.chevUp(18) : I.chevDown(18)}</div>${menu}${o.cap || ''}</div>`;
+  };
+  const primary = (label, act, enabled = true) => U.btn(label, 'primary' + (enabled ? '' : ' disabled'), `data-act="${act}" data-primary`);
+  const searchBox = (ph) => `<div class="search">${I.search(18)}<input data-f="q" data-input="q" placeholder="${ph}" value="${esc(S.ui.q)}" autocomplete="off"></div>`;
+  const manualRow = (label, ph, val) => S.ui.manual
+    ? `<div class="manualrow"><div class="lab">${label}</div><div class="sbox focus"><input data-f="manual" data-input="manual" placeholder="${ph}" value="${esc(val || '')}" autocomplete="off"></div></div>`
+    : `<div class="more" data-act="manual" tabindex="0" role="button">${I.plus(16)} ${label}</div>`;
+  const item = (name, { sel, tag, code, sub, act = 'sel', v } = {}) =>
+    `<div class="item ${sel ? 'sel' : ''}" data-act="${act}" data-v="${esc(v == null ? name : v)}"><div class="t"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</div>${code ? `<code>${code}</code>` : ''}${tag ? `<span class="tag">${tag}</span>` : ''}</div>`;
+
+  /* ---------- screens ---------- */
+  const common = { yesAttrs: 'data-act="yes" data-primary', noAttrs: 'data-act="no"', advAttrs: 'data-act="adv"', backAttrs: 'data-act="back"' };
+  const manualBase = { adv: true, advAttrs: 'data-act="adv"', backAttrs: 'data-act="back"' };
+
+  function rLang() {
+    const list = D.langs.map((l) => item(l, { sel: l === S.lang, act: 'lang' })).join('');
+    const dots = S.rdx ? '' : `<div class="tapdots"><div class="d">${[0, 1, 2, 3, 4].map((i) => `<i class="${i < S.taps ? 'on' : ''}"></i>`).join('')}</div><span>Prototype hint: click the illustration 5 times</span></div>`;
+    const dialog = S.dialog ? `<div class="scrim"></div>
+      <div class="dialog">
+        <div class="rdxm">${I.rdxMark(60)}</div>
+        <div class="taps">${[1, 2, 3, 4, 5].map((n) => `<span class="tap">${n}</span>`).join('')}</div>
+        <h2>RDX enablement activated</h2>
+        <p>5 taps detected. This device will be set up as a retail demo device.</p>
+        <div class="row">${U.btn('Cancel', '', 'data-act="tap-cancel"')}${U.btn('Continue', 'primary', 'data-act="tap-continue" data-primary')}</div>
+      </div>` : '';
+    return U.shell({
+      back: false, pill: S.rdx, art: A.language(), leftAttrs: 'data-act="tap"', extra: dots, cls: S.dialog ? 'dim' : '', overlay: dialog,
+      body: `<h1>Let’s start with your language</h1><div class="list fade scroll" style="height:372px">${list}</div>`,
+      actions: primary('Next', 'lang-next'),
+    });
+  }
+
+  function rNet() {
+    const rows = D.networks.map((n) => n.name === S.net.sel
+      ? `<div class="net sel"><div class="r1">${I.wifi(20)}<span>${n.name}</span></div><div class="sub">${n.secure ? 'Secure' : 'Open'}</div>
+          <div class="chk" data-act="auto"><span class="cb ${S.net.auto ? '' : 'off'}">${S.net.auto ? I.check(12) : ''}</span>Connect automatically</div>
+          ${S.net.busy ? `<span class="btn primary go busy"><i class="mini-spin"></i>Connecting…</span>` : U.btn('Connect', 'primary go', 'data-act="connect" data-primary')}</div>`
+      : `<div class="net" data-act="net" data-v="${esc(n.name)}">${I.wifi(20)}<span>${n.name}</span></div>`).join('');
+    return U.shell({
+      art: A.wifi(), kb: true, backAttrs: 'data-act="back"',
+      body: `<h1>Let’s connect you to a network</h1><p class="hint">RDX needs an internet connection to find your store details and download demo content.</p><div class="nets">${rows}</div>`,
+      actions: U.btn('Learn more', 'link', 'data-act="noop"'),
+    });
+  }
+
+  const DETECT = [['Connecting…', (n) => `Connected to ${n}`], ['Finding your location…', () => 'Location found'], ['Checking retailer and store…', () => 'Retailer and store found'], ['Checking this device…', () => 'Device identified']];
+  const detectSteps = () => DETECT.map((d, i) => {
+    const st = i < S.detect ? 'done' : i === S.detect ? 'now' : 'wait';
+    return `<div class="stp ${st}"><span class="ic">${st === 'done' ? I.check(12) : ''}</span>${st === 'done' ? d[1](S.net.sel) : d[0]}</div>`;
+  }).join('');
+  const rDetect = () => U.shell({
+    art: A.radar(), rstyle: 'top:70px', backAttrs: 'data-act="back"',
+    body: `<div class="busy"><div class="spin"></div><div class="txt">Finding your store details</div><div class="sub">This usually takes a few seconds.</div><div class="steps" id="steps">${detectSteps()}</div></div>`,
+  });
+  function runDetect() {
+    const step = () => {
+      S.detect += 1; patch('#steps', detectSteps());
+      if (S.detect >= DETECT.length) later(() => go('loc'), 800); else later(step, 900);
+    };
+    later(step, 900);
+  }
+
+  function rLoc() {
+    const e = S.edited.loc;
+    return U.confirm({
+      ...common, step: 0, art: A.pin(), title: 'Is this the right location?', kicker: e ? 'Location selected' : 'Location detected', icon: I.pin(26), value: D.locLabel(L()),
+      facts: [e ? { t: 'You chose this location.' } : { t: 'Detected from this device’s network connection.', i: 'wifi' }, { t: 'We use your location to suggest the right retailer, store and demo content.' }],
+    });
+  }
+  function rLocEdit() {
+    const d = S.draft;
+    const ok = d.region && d.country && d.state && d.city;
+    const sl = d.country ? D.stateLabel(d.country) : 'State or province';
+    return U.shell({
+      ...manualBase, step: 0, art: A.globe(),
+      body: `<h1>Where is this device?</h1><p class="hint">Each list only shows options that apply to your previous choice.</p>
+        <div class="g2c">
+          ${dd('l.region', 'Region', d.region, opts(D.regions()), { value: d.region, ph: 'Select a region' })}
+          ${dd('l.country', 'Country', d.country, d.region ? opts(D.countries(d.region)) : [], { value: d.country, ph: 'Select a country', disabled: !d.region })}
+        </div>
+        ${dd('l.state', sl, d.state, d.country ? opts(D.states(d.region, d.country)) : [], { value: d.state, ph: d.country ? `Select a ${sl.toLowerCase()}` : 'Choose a country first', disabled: !d.country })}
+        ${dd('l.city', 'City or area', d.city, d.state ? opts(D.cities(d.region, d.country, d.state)) : [], { value: d.city, ph: d.state ? 'Select a city or area' : `Choose a ${sl.toLowerCase()} first`, disabled: !d.state, up: true })}`,
+      actions: primary('Confirm', 'loc-confirm', !!ok),
+    });
+  }
+
+  function rRet() {
+    const e = S.edited.retailer;
+    return U.confirm({
+      ...common, step: 1, art: A.store(), title: 'Is this the right retailer?', kicker: e ? 'Retailer selected' : 'Retailer detected', icon: I.store(26), value: S.cur.retailer, sub: `Retailer for ${D.shortPlace(L())}`,
+      facts: [{ t: e ? 'You chose this retailer.' : S.edited.loc ? `Suggested for ${L().city}.` : 'Another RDX device on this network is already registered with this retailer.' }, { t: `Only retailers available in ${L().country} are suggested.` }],
+    });
+  }
+  function rRetEdit() {
+    const ql = S.ui.q.trim().toLowerCase(), def = D.defRetailer(L().country);
+    const list = D.retailersFor(L().country).filter((r) => r.toLowerCase().includes(ql));
+    return U.shell({
+      ...manualBase, step: 1, art: A.store(),
+      body: `<h1>Choose your retailer</h1><p class="hint">Showing retailers in ${L().country}.</p>${searchBox('Search retailers')}
+        <div class="list">${list.map((r) => item(r, { sel: S.draft.retailer === r, tag: r === def ? 'Detected' : '' })).join('') || `<div class="empty">No retailers match “${esc(S.ui.q)}”.</div>`}</div>`,
+      actions: primary('Confirm', 'ret-confirm', !!S.draft.retailer),
+    });
+  }
+
+  function rStore() {
+    const s = storeObj(), e = S.edited.store;
+    return U.confirm({
+      ...common, step: 2, art: A.storeid(), title: 'Is this the right store?', kicker: e ? 'Store selected' : 'Store detected', icon: I.building(26), value: `Store ${s.id}`, sub: `${S.cur.retailer} · ${s.place}`,
+      facts: [{ t: 'Verified with DMS', ok: 1 }, { t: e ? 'You chose this store.' : 'Matches the location you confirmed.' }],
+    });
+  }
+  function rStoreEdit() {
+    const d = S.draft, ql = S.ui.q.trim().toLowerCase(), def = D.defStore(S.cur.retailer, L());
+    const list = storeList().filter((s) => `${s.id} ${s.place}`.toLowerCase().includes(ql));
+    return U.shell({
+      ...manualBase, step: 2, art: A.storeid(),
+      body: `<h1>Choose your store</h1><p class="hint">${S.cur.retailer} stores near ${D.shortPlace(L())}.</p>${searchBox('Search by store ID or city')}
+        <div class="list">${list.map((s) => item(`Store ${s.id}`, { sel: d.store === s.id && !(d.custom || '').trim(), sub: `${s.place} · ${s.dist}`, tag: s.id === def ? 'Detected' : '', v: s.id })).join('') || `<div class="empty">No stores match “${esc(S.ui.q)}”.</div>`}</div>
+        ${manualRow('Enter a Store ID manually', 'Enter a Store ID', d.custom)}`,
+      actions: primary('Confirm', 'store-confirm', !!(d.store || (d.custom || '').trim())),
+    });
+  }
+
+  function rRac() {
+    const r = racObj(), custom = r.key === 'custom', e = S.edited.rac;
+    return U.confirm({
+      ...common, step: 3, art: r.key === 'gaming' ? A.gaming() : A.device(), title: custom ? 'Is this the right RAC ID?' : `Is this a ${r.name} device?`, kicker: e ? 'Collection selected' : 'Collection detected',
+      icon: collIcon(r.key, 26), value: r.name, sub: `${r.pos}<br>RAC ID <code>${esc(r.code)}</code>`,
+      facts: [{ t: 'Verified with DMS', ok: 1 }, { t: e ? 'You chose this collection.' : `Detected for this device at ${S.cur.retailer}, ${D.shortPlace(L())}.` }],
+    });
+  }
+  function rRacEdit() {
+    const d = S.draft, def = D.defRac(S.cur.retailer), list = racList();
+    return U.shell({
+      ...manualBase, step: 3, art: A.gaming(),
+      body: `<h1>Choose a collection</h1><p class="hint">Collections available for ${S.cur.retailer} in ${L().country}.</p>
+        <div class="list">${list.map((r) => item(r.name, { sel: d.rac === r.key && !(d.custom || '').trim(), sub: r.pos, code: r.code, tag: r.key === def ? 'Detected' : '', v: r.key })).join('')}</div>
+        ${manualRow('Enter a RAC ID manually', 'Enter a RAC ID', d.custom)}`,
+      actions: primary('Confirm', 'rac-confirm', !!(d.rac || (d.custom || '').trim())),
+    });
+  }
+
+  function rSku() {
+    const e = S.edited.sku;
+    return U.confirm({
+      ...common, step: 4, art: A.sku(), title: 'Is this the right SKU?', kicker: e ? 'SKU entered' : 'SKU detected', icon: I.barcode(26), value: esc(S.cur.sku), sub: S.cur.sku === D.sku.id ? D.sku.name : 'Entered manually', yes: 'Yes, start setup',
+      facts: [{ t: e ? 'You entered this SKU. Leading zeros are kept.' : 'Read from this device’s firmware. Leading zeros are kept.' }, { t: 'After you confirm, RDX starts setting up this device.' }],
+    });
+  }
+  function rSkuEdit() {
+    const v = S.draft.sku || '';
+    return U.shell({
+      ...manualBase, step: 4, art: A.sku(),
+      body: `<h1>Enter the SKU ID</h1><p class="hint">The retailer-assigned SKU or item number for this device.</p>
+        <div class="field"><div class="lab">SKU ID</div><div class="sbox focus"><input data-f="sku" data-input="skuEdit" placeholder="Enter the retailer-assigned SKU or item number" value="${esc(v)}" autocomplete="off"></div></div>
+        <ul class="helper">
+          <li><b>Meaning:</b> The product identifier in your retailer catalog.</li>
+          <li><b>Expected:</b> The exact assigned SKU or item number — keep any leading zeros.</li>
+          <li><b>Where to find it:</b> Product label, retailer catalog or inventory system.</li>
+        </ul>`,
+      actions: primary('Start setup', 'sku-confirm', !!v.trim()),
+    });
+  }
+
+  function rAdv() {
+    const c = S.cur, l = c.loc, rets = D.retailersFor(l.country), racs = racList(), stores = storeList(), rac = racObj(), st = storeObj();
+    const chk = S.dms === 'checking' ? `<i class="mini-spin dark"></i> Verifying with DMS…` : `${I.check(13)} Verified with DMS`;
+    const vrow = (name) => S.dms === 'checking' ? `<div class="vrow"><span class="ic wait"><i class="mini-spin dark"></i></span>${name} verifying…</div>` : `<div class="vrow"><span class="ic">${I.check(13)}</span>${name} verified</div>`;
+    return U.shell({
+      back: false,
+      extra: `
+        <div class="ah"><h1>Advanced configuration</h1><p>Review or change everything on one screen. Only options that apply to this store are shown.</p></div>
+        <div class="af">
+          <div class="sec">Location<span class="only" style="margin-left:auto;text-transform:none;letter-spacing:0">${I.sliders(14)} Showing only options for this store</span></div>
+          <div class="g4">
+            ${dd('a.region', 'Region', l.region, opts(D.regions()), { value: l.region })}
+            ${dd('a.country', 'Country', l.country, opts(D.countries(l.region)), { value: l.country })}
+            ${dd('a.state', D.stateLabel(l.country), l.state, opts(D.states(l.region, l.country)), { value: l.state })}
+            ${dd('a.city', 'City or area', l.city, opts(D.cities(l.region, l.country, l.state)), { value: l.city })}
+          </div>
+          <div class="sec">Retail details</div>
+          <div class="g2">
+            ${dd('a.retailer', 'Retailer', c.retailer, opts(rets), { value: c.retailer, cap: `<div class="cap">${rets.length} retailer${rets.length === 1 ? '' : 's'} in ${l.country}</div>` })}
+            ${dd('a.store', 'Store ID', `${st.id} · ${st.place}`, stores.map((s) => ({ v: s.id, t: `${s.id} · ${s.place}` })), { value: c.store, cap: `<div class="cap ok">${chk} · ${stores.length} stores near ${l.city}</div>` })}
+            ${dd('a.rac', 'RAC ID', `${rac.name} · ${esc(rac.code)}`, racs.map((r) => ({ v: r.key, t: `${r.name} · ${r.code}` })), { value: c.rac, cap: `<div class="cap ok">${chk} · ${racs.length} collection${racs.length === 1 ? '' : 's'} for ${c.retailer}</div>` })}
+            <div class="field"><div class="lab">SKU ID</div><div class="sbox"><input data-f="sku" data-input="advSku" value="${esc(c.sku)}" placeholder="Enter the retailer-assigned SKU or item number" autocomplete="off"></div><div class="cap">${c.sku === D.sku.id ? 'Detected from this device · leading zeros kept' : 'Entered manually · leading zeros kept'}</div></div>
+          </div>
+        </div>
+        <div class="aside">
+          <div class="panel"><h3>${I.info(20)} Why these details are pre-filled</h3>
+            <p>Another RDX device on this network has a DMS-validated RAC ID and Store ID that match your detected location, so we used the same details here.</p></div>
+          <div class="panel"><h3>${I.shield(20)} DMS validation</h3>
+            ${vrow('Store ID')}${vrow('RAC ID')}
+            <p style="margin-top:10px">The selected RAC ID and Store ID have been validated with DMS.</p>
+            ${U.btn(I.refresh(16) + ' Validate again', '', 'data-act="validate"')}</div>
+        </div>
+        <div class="adv" style="left:70px" data-act="adv-back" tabindex="0" role="button">${I.back(18)}<span>Back to guided setup</span></div>`,
+      actions: primary('Apply and start setup', 'adv-apply'),
+    });
+  }
+
+  const TASK_NAMES = ['Updating Windows', 'Updating app', 'Downloading Attract loop', 'Updating Demo Hub'];
+  const TASK_SECS = [7, 4, 6, 4];
+  const taskRows = () => TASK_NAMES.map((n, i) => {
+    const st = S.cook.done || i < S.cook.i ? 'ok' : i === S.cook.i ? 'now' : 'wait', pct = Math.round(S.cook.p * 100);
+    return `<div class="task ${st}"><span class="ic">${st === 'ok' ? I.check(16) : ''}</span><div class="nm">${n}${st === 'now' ? `<div class="pb"><i style="width:${pct}%"></i></div>` : ''}</div><span class="st">${st === 'ok' ? 'Done' : st === 'now' ? pct + '%' : 'Waiting'}</span></div>`;
+  }).join('');
+  function rCook() {
+    const done = S.cook.done, r = racObj(), s = storeObj();
+    const recap = `<div class="recap"><span class="rchip">${I.pin(14)}${D.shortPlace(L())}</span><span class="rchip">${I.store(14)}${S.cur.retailer}</span><span class="rchip">${I.building(14)}Store ${esc(s.id)}</span><span class="rchip">${collIcon(r.key, 14)}${r.name} · ${esc(r.code)}</span><span class="rchip">${I.barcode(14)}SKU ${esc(S.cur.sku)}</span></div>`;
+    return U.shell({
+      back: false, art: A.cook(done ? 'done' : 'start'), extra: recap, rstyle: 'top:62px',
+      body: `${done ? `<div class="lockpill ok">${I.check(16)} Setup complete</div>` : `<div class="lockpill">${I.lock(16)} This device is locked while we finish setup</div>`}
+        <h1>${done ? 'All done!' : 'RDX is cooking in the background'}</h1>
+        <div class="sub2">${done ? 'RDX is ready. Your device is set up and good to go.' : 'Stay connected while we finish up.'}</div>
+        <div class="tasks" id="tasks">${taskRows()}</div>
+        ${done ? '' : `<div class="funny">${I.sparkle(18)}<span>Hands off, chef at work! Good demos take a few minutes to simmer. This screen unlocks when everything turns green.</span></div>`}`,
+      actions: done ? primary('Continue', 'cook-continue') : '',
+    });
+  }
+  function runCook() {
+    every(() => {
+      if (S.cook.done) return;
+      S.cook.p += (0.1 * S.speed) / TASK_SECS[S.cook.i];
+      if (S.cook.p >= 1) { S.cook.i += 1; S.cook.p = 0; }
+      if (S.cook.i >= TASK_NAMES.length) {
+        S.cook.done = true; patch('#tasks', taskRows()); clearTimers();
+        later(() => { if (S.screen === 'cook') render(); }, 700);
+        return;
+      }
+      patch('#tasks', taskRows());
+    }, 100);
+  }
+
+  const rDesktop = () => { const r = racObj(); return U.desktop({ retailer: S.cur.retailer, store: storeObj().id, key: r.key, name: r.name, pos: r.pos, code: r.code }); };
+
+  const SCREENS = { lang: rLang, net: rNet, detect: rDetect, loc: rLoc, locEdit: rLocEdit, ret: rRet, retEdit: rRetEdit, store: rStore, storeEdit: rStoreEdit, rac: rRac, racEdit: rRacEdit, sku: rSku, skuEdit: rSkuEdit, adv: rAdv, cook: rCook, desktop: rDesktop };
+
+  /* ---------- rendering / navigation ---------- */
+  function render({ animate = false } = {}) {
+    const act = document.activeElement;
+    const keep = act && act.dataset && act.dataset.f ? { f: act.dataset.f, s: act.selectionStart, e: act.selectionEnd } : null;
+    stageEl.innerHTML = SCREENS[S.screen]();
+    if (animate) stageEl.firstElementChild.classList.add('enter');
+    const want = S.ui.focus || (keep && keep.f);
+    if (want) {
+      const el = $(`[data-f="${want}"]`, stageEl);
+      if (el) {
+        el.focus();
+        try { if (keep && keep.f === want && !S.ui.focus) el.setSelectionRange(keep.s, keep.e); else el.setSelectionRange(el.value.length, el.value.length); } catch (err) { /* not a text input */ }
+      }
+    }
+    S.ui.focus = null;
+    syncChrome();
+  }
+  function prepare(s) {
+    if (s === 'locEdit') S.draft = { region: '', country: '', state: '', city: '' };
+    if (s === 'retEdit') S.draft = { retailer: '' };
+    if (s === 'racEdit') S.draft = { rac: '', custom: '' };
+    if (s === 'storeEdit') S.draft = { store: '', custom: '' };
+    if (s === 'skuEdit') S.draft = { sku: '' };
+    if (s === 'detect') S.detect = 1;
+    if (s === 'cook') S.cook = { i: 0, p: 0, done: false };
+    if (s === 'adv') S.dms = 'ok';
+  }
+  function go(screen, { push = true, animate = true } = {}) {
+    clearTimers();
+    if (push && S.screen && S.screen !== 'detect' && S.screen !== 'cook') S.hist.push(S.screen);
+    S.screen = screen;
+    S.ui = { open: null, q: '', manual: false, focus: null };
+    prepare(screen);
+    render({ animate });
+    if (screen === 'detect') runDetect();
+    if (screen === 'cook') runCook();
+  }
+  function back() { const prev = S.hist.pop(); if (prev) go(prev, { push: false }); }
+
+  const histFor = (s) => {
+    if (s === 'detect') return ['lang', 'net'];
+    const b = BASE[s];
+    if (b) return CHAIN.slice(0, CHAIN.indexOf(b) + 1);
+    const i = CHAIN.indexOf(s);
+    return i > 0 ? CHAIN.slice(0, i) : [];
+  };
+  const JUMP = { '00': 'lang', '01': 'lang', '02': 'net', '03': 'detect', '04': 'loc', '04b': 'locEdit', '05': 'ret', '05b': 'retEdit', '06': 'store', '06b': 'storeEdit', '07': 'rac', '07b': 'racEdit', '08': 'sku', '08b': 'skuEdit', '09': 'adv', '10': 'cook', '12': 'cook', '13': 'desktop' };
+  function jump(id) {
+    clearTimers();
+    S = fresh({ theme: S.theme, speed: S.speed });
+    S.rdx = id !== '00';
+    if (id === '00') { S.taps = 5; S.dialog = true; }
+    S.hist = JUMP[id] === 'adv' ? ['lang', 'net', 'loc'] : histFor(JUMP[id]);
+    go(JUMP[id], { push: false });
+    if (id === '12') { clearTimers(); S.cook = { i: 4, p: 0, done: true }; render(); }
+  }
+  function restart() { clearTimers(); S = fresh({ theme: S.theme, speed: S.speed }); go('lang', { push: false }); }
+
+  /* ---------- actions ---------- */
+  function pick(id, v) {
+    S.ui.open = null;
+    const d = S.draft, l = L();
+    switch (id) {
+      case 'l.region': d.region = v; d.country = d.state = d.city = ''; break;
+      case 'l.country': d.country = v; d.state = d.city = ''; break;
+      case 'l.state': d.state = v; d.city = ''; break;
+      case 'l.city': d.city = v; break;
+      case 'a.region': l.region = v; l.country = D.countries(v)[0]; l.state = D.states(v, l.country)[0]; l.city = D.cities(v, l.country, l.state)[0]; resetBelowLoc(); touchDms(); break;
+      case 'a.country': l.country = v; l.state = D.states(l.region, v)[0]; l.city = D.cities(l.region, v, l.state)[0]; resetBelowLoc(); touchDms(); break;
+      case 'a.state': l.state = v; l.city = D.cities(l.region, l.country, v)[0]; S.cur.store = D.defStore(S.cur.retailer, l); S.cur.storeCustom = ''; touchDms(); break;
+      case 'a.city': l.city = v; S.cur.store = D.defStore(S.cur.retailer, l); S.cur.storeCustom = ''; touchDms(); break;
+      case 'a.retailer': setRetailer(v); touchDms(); break;
+      case 'a.rac': S.cur.rac = v; S.cur.racCustom = ''; touchDms(); break;
+      case 'a.store': S.cur.store = v; S.cur.storeCustom = ''; touchDms(); break;
+      default: break;
+    }
+    render();
+  }
+
+  const ACT = {
+    noop() {},
+    lang(t) { S.lang = t.dataset.v; render(); },
+    'lang-next'() { if (!S.rdx) { toast('Standard Windows OOBE would continue here. Click the illustration 5 times to enable RDX.'); return; } go('net'); },
+    tap(t, e) {
+      if (S.rdx || S.dialog) return;
+      const r = stageEl.getBoundingClientRect(), k = r.width / 1280;
+      const x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k;
+      S.taps += 1;
+      if (S.taps >= 5) S.dialog = true;
+      render();
+      const rip = document.createElement('i'); rip.className = 'ripple'; rip.style.left = x + 'px'; rip.style.top = y + 'px';
+      stageEl.firstElementChild.appendChild(rip);
+    },
+    'tap-cancel'() { S.dialog = false; S.taps = 0; render(); },
+    'tap-continue'() { S.dialog = false; S.rdx = true; render(); toast('RDX mode enabled. Pick a language, then connect to a network.'); },
+    net(t) { S.net.sel = t.dataset.v; render(); },
+    auto() { S.net.auto = !S.net.auto; render(); },
+    connect() { S.net.busy = true; render(); later(() => { S.net.busy = false; go('detect'); }, 1400); },
+    yes() { const n = NEXT[S.screen]; if (n) go(n); },
+    no() { const n = NO[S.screen]; if (n) go(n); },
+    back() { back(); },
+    adv() { S.advFrom = S.screen; go('adv'); },
+    'adv-back'() { if (S.hist[S.hist.length - 1] === S.advFrom) S.hist.pop(); go(S.advFrom || 'loc', { push: false }); },
+    'adv-apply'() { go('cook'); },
+    dd(t) { S.ui.open = S.ui.open === t.dataset.id ? null : t.dataset.id; render(); },
+    pick(t) { pick(t.dataset.id, t.dataset.v); },
+    sel(t) {
+      const d = S.draft, v = t.dataset.v;
+      if (S.screen === 'retEdit') d.retailer = v;
+      else if (S.screen === 'racEdit') { d.rac = v; d.custom = ''; S.ui.manual = false; }
+      else if (S.screen === 'storeEdit') { d.store = v; d.custom = ''; S.ui.manual = false; }
+      render();
+    },
+    manual() { S.ui.manual = true; S.ui.focus = 'manual'; render(); },
+    'loc-confirm'() { const d = S.draft; if (!(d.region && d.country && d.state && d.city)) return; setLoc({ region: d.region, country: d.country, state: d.state, city: d.city }); S.edited.loc = true; go('ret', { push: false }); },
+    'ret-confirm'() { if (!S.draft.retailer) return; setRetailer(S.draft.retailer); S.edited.retailer = true; go('store', { push: false }); },
+    'store-confirm'() {
+      const d = S.draft, c = (d.custom || '').trim();
+      if (c) { S.cur.store = 'custom'; S.cur.storeCustom = c; } else if (d.store) { S.cur.store = d.store; S.cur.storeCustom = ''; } else return;
+      S.edited.store = true; go('rac', { push: false });
+    },
+    'rac-confirm'() {
+      const d = S.draft, c = (d.custom || '').trim();
+      if (c) { S.cur.rac = 'custom'; S.cur.racCustom = c; } else if (d.rac) { S.cur.rac = d.rac; S.cur.racCustom = ''; } else return;
+      S.edited.rac = true; go('sku', { push: false });
+    },
+    'sku-confirm'() { const v = (S.draft.sku || '').trim(); if (!v) return; S.cur.sku = v; S.edited.sku = true; go('cook', { push: false }); },
+    validate() { touchDms(); render(); },
+    'cook-continue'() { go('desktop'); },
+  };
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-act]');
+    if (!t || !stageEl.contains(t)) {
+      if (S.ui.open && !e.target.closest('.field') && stageEl.contains(e.target)) { S.ui.open = null; render(); }
+      const close = e.target.closest('.toast .x');
+      if (close) close.closest('.toast').remove();
+      return;
+    }
+    const a = t.dataset.act;
+    if (S.ui.open && a !== 'dd' && a !== 'pick') S.ui.open = null;
+    if (ACT[a]) ACT[a](t, e);
+  });
+
+  document.addEventListener('input', (e) => {
+    const t = e.target, k = t.dataset && t.dataset.input;
+    if (!k) return;
+    if (k === 'q') S.ui.q = t.value;
+    else if (k === 'manual') { S.draft.custom = t.value; if (t.value.trim()) { S.draft.rac = ''; S.draft.store = ''; } }
+    else if (k === 'skuEdit') S.draft.sku = t.value;
+    else if (k === 'advSku') S.cur.sku = t.value;
+    render();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const t = e.target;
+    if (t.closest && t.closest('.ptb')) return;
+    if (e.key === 'Enter') {
+      if (t.matches && t.matches('[data-act]') && t.tagName !== 'INPUT') { t.click(); e.preventDefault(); return; }
+      const p = $('[data-primary]:not(.disabled)', stageEl);
+      if (p) { p.click(); e.preventDefault(); }
+    } else if (e.key === 'Escape') {
+      if (S.ui.open) { S.ui.open = null; render(); } else if (S.dialog) ACT['tap-cancel']();
+    }
+  });
+
+  /* ---------- chrome: toolbar, theme, speed, fit ---------- */
+  const JUMP_OPTS = [['00', '5-tap entry'], ['01', 'Language'], ['02', 'Network'], ['03', 'Detecting'], ['04', 'Location'], ['04b', 'Change location'], ['05', 'Retailer'], ['05b', 'Choose retailer'], ['06', 'Store ID'], ['06b', 'Choose store'], ['07', 'RAC ID'], ['07b', 'Choose collection'], ['08', 'SKU ID'], ['08b', 'Enter SKU ID'], ['09', 'Advanced configuration'], ['10', 'RDX is cooking'], ['12', 'All done'], ['13', 'Windows 11 desktop']];
+  function buildToolbar() {
+    $('#ptb').innerHTML = `
+      <div class="brand">${I.rdxMark(24)}<b>RDX OOBE</b><span>prototype</span></div>
+      <label class="grp"><span class="lbl">Jump to</span><select id="jump">${JUMP_OPTS.map(([v, t]) => `<option value="${v}">${v} · ${t}</option>`).join('')}</select></label>
+      <div class="grp"><span class="lbl">Theme</span><span class="seg2" id="themeSeg"><button data-t="light">Windows 11 light</button><button data-t="dark">RDX blue</button></span></div>
+      <div class="grp"><span class="lbl">Speed</span><span class="seg2" id="speedSeg"><button data-s="1">1×</button><button data-s="4">4×</button></span></div>
+      <button class="chip" id="restart">↺ Restart</button>
+      `;
+    $('#jump').addEventListener('change', (e) => jump(e.target.value));
+    $('#themeSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setTheme(b.dataset.t); });
+    $('#speedSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { S.speed = +b.dataset.s; syncChrome(); } });
+    $('#restart').addEventListener('click', restart);
+  }
+  function setTheme(t) {
+    S.theme = t; document.body.classList.toggle('theme-dark', t === 'dark');
+    try { localStorage.setItem('rdxTheme', t); } catch (err) { /* storage unavailable */ }
+    syncChrome();
+  }
+  function syncChrome() {
+    const n = NAME[S.screen]; if (!n) return;
+    let id = n[0];
+    if (S.screen === 'cook' && S.cook.done) id = '12';
+    $('#jump').value = JUMP_OPTS.some(([v]) => v === id) ? id : n[0];
+    $('#themeSeg').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.t === S.theme));
+    $('#speedSeg').querySelectorAll('button').forEach((b) => b.classList.toggle('on', +b.dataset.s === S.speed));
+    document.title = `RDX OOBE prototype · ${id} ${n[1]}`;
+  }
+  function fit() {
+    const st = $('#pstage'); if (!st.clientWidth) return;
+    const k = Math.min(st.clientWidth / 1280, st.clientHeight / 720);
+    $('#scale').style.transform = `translate(-50%, -50%) scale(${k})`;
+  }
+
+  /* ---------- boot ---------- */
+  buildToolbar();
+  new ResizeObserver(fit).observe($('#pstage'));
+  let theme = q.get('theme');
+  if (!theme) { try { theme = localStorage.getItem('rdxTheme'); } catch (err) { theme = null; } }
+  setTheme(theme === 'dark' ? 'dark' : 'light');
+  if (q.get('speed')) S.speed = +q.get('speed') || 1;
+  fit();
+  if (q.get('screen') && JUMP[q.get('screen')]) jump(q.get('screen')); else go('lang', { push: false, animate: false });
+  fit();
+
+  window.__rdx = { get S() { return S; }, go, jump, ACT, restart, setTheme };
+})(window.RDX);
+
+</script>
 </body>
 </html>
